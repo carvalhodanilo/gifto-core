@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: core
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/voucherdb
+    username: voucher
+    password: voucher
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+    show-sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+server:
+  port: 8080
+  shutdown: graceful
+  error:
+    include-message: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+app:
+  security:
+    enabled: false
+  voucher:
+    token:
+      secret: ${VOUCHER_TOKEN_SECRET:change-me-dev-secret}
+      bytes: 16
+      version: 1
+    display-code:
+      length: 8
