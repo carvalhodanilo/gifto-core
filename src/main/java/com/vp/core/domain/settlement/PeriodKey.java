@@ -69,18 +69,31 @@ public final class PeriodKey extends ValueObject {
     }
 
     /**
-     * Retorna true se a semana ainda não começou (segunda-feira da semana é no futuro).
+     * Retorna a segunda-feira (inclusive) da semana ISO deste período.
      */
-    public boolean isFuture() {
+    public LocalDate getStartDateInclusive() {
         final var parts = value.split("-W");
         final int year = Integer.parseInt(parts[0]);
         final int week = Integer.parseInt(parts[1]);
+        return LocalDate.now()
+                .with(IsoFields.WEEK_BASED_YEAR, year)
+                .with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, week)
+                .with(ChronoField.DAY_OF_WEEK, 1); // 1 = Monday
+    }
+
+    /**
+     * Retorna o domingo (inclusive) da semana ISO deste período.
+     */
+    public LocalDate getEndDateInclusive() {
+        return getStartDateInclusive().plusDays(6);
+    }
+
+    /**
+     * Retorna true se a semana ainda não começou (segunda-feira da semana é no futuro).
+     */
+    public boolean isFuture() {
         try {
-            final LocalDate mondayOfWeek = LocalDate.now()
-                    .with(IsoFields.WEEK_BASED_YEAR, year)
-                    .with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, week)
-                    .with(ChronoField.DAY_OF_WEEK, 1);
-            return mondayOfWeek.isAfter(LocalDate.now());
+            return getStartDateInclusive().isAfter(LocalDate.now());
         } catch (Exception e) {
             return false;
         }

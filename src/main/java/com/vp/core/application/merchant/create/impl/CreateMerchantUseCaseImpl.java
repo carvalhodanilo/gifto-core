@@ -37,13 +37,15 @@ public class CreateMerchantUseCaseImpl extends CreateMerchantUseCase {
     @Transactional
     public CreateMerchantOutput execute(final CreateMerchantCommand command) {
         final var tenantId = TenantId.from(command.tenantId());
+        final var location = buildLocation(command.street(), command.number(), command.neighborhood(),
+                command.complement(), command.city(), command.state(), command.country(), command.postalCode());
 
         final var merchant = Merchant.create(
                 tenantId,
                 command.name(),
                 command.fantasyName(),
                 Document.with(command.document()),
-                Location.empty(),
+                location,
                 BankAccount.empty(),
                 command.phone1(),
                 command.phone2(),
@@ -65,5 +67,35 @@ public class CreateMerchantUseCaseImpl extends CreateMerchantUseCase {
 
         userGateway.create(merchantUser);
         return CreateMerchantOutput.of(merchant.getId().getValue());
+    }
+
+    private static Location buildLocation(
+            final String street,
+            final String number,
+            final String neighborhood,
+            final String complement,
+            final String city,
+            final String state,
+            final String country,
+            final String postalCode
+    ) {
+        if (street == null && number == null && neighborhood == null && complement == null
+                && city == null && state == null && country == null && postalCode == null) {
+            return Location.empty();
+        }
+        return Location.with(
+                blankToNull(street),
+                blankToNull(number),
+                blankToNull(neighborhood),
+                blankToNull(complement),
+                blankToNull(city),
+                blankToNull(state),
+                blankToNull(country),
+                blankToNull(postalCode)
+        );
+    }
+
+    private static String blankToNull(final String s) {
+        return s == null || s.isBlank() ? null : s.trim();
     }
 }

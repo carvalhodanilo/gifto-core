@@ -6,8 +6,8 @@ public record ListByTenantOutput(
         String voucherId,
         String campaignId,
         String campaignName,
-        String displayCode,
         String status,
+        long amountCents,
         Instant issuedAt,
         Instant expiresAt
 ) {
@@ -15,11 +15,11 @@ public record ListByTenantOutput(
             final String voucherId,
             final String campaignId,
             final String campaignName,
-            final String displayCode,
             final String status,
+            final long amountCents,
             final Instant issuedAt,
             final Instant expiresAt
     ) {
-        return new ListByTenantOutput(voucherId, campaignId, campaignName, displayCode, status, issuedAt, expiresAt);
+        return new ListByTenantOutput(voucherId, campaignId, campaignName, status, amountCents, issuedAt, expiresAt);
     }
 }

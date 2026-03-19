@@ -18,4 +18,6 @@ public interface VoucherIssuedProjection {
     Instant getIssuedAt();
 
     Instant getExpiresAt();
+
+    long getAmountCents();
 }

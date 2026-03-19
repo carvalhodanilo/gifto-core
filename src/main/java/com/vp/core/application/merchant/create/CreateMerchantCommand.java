@@ -2,8 +2,6 @@ package com.vp.core.application.merchant.create;
 
 import com.vp.core.domain.valueObjects.URL;
 
-import java.util.Set;
-
 public record CreateMerchantCommand(
         String tenantId,
         String name,
@@ -12,7 +10,15 @@ public record CreateMerchantCommand(
         String phone1,
         String phone2,
         String email,
-        URL url
+        URL url,
+        String street,
+        String number,
+        String neighborhood,
+        String complement,
+        String city,
+        String state,
+        String country,
+        String postalCode
 ) {
 
     public static CreateMerchantCommand with(
@@ -23,7 +29,15 @@ public record CreateMerchantCommand(
             final String phone1,
             final String phone2,
             final String email,
-            final String url
+            final String url,
+            final String street,
+            final String number,
+            final String neighborhood,
+            final String complement,
+            final String city,
+            final String state,
+            final String country,
+            final String postalCode
     ) {
         return new CreateMerchantCommand(
                 tenantId,
@@ -33,7 +47,15 @@ public record CreateMerchantCommand(
                 phone1,
                 phone2,
                 email,
-                URL.with(url)
+                URL.with(url),
+                street,
+                number,
+                neighborhood,
+                complement,
+                city,
+                state,
+                country,
+                postalCode
         );
     }
 }

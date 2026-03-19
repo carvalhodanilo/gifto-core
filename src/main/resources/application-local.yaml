@@ -1,0 +1,17 @@
+app:
+  security:
+    enabled: true
+    keycloak:
+      # Exemplo local: http://localhost:8081/realms/gifto
+      issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/gifto}
+      client-id: ${KEYCLOAK_CLIENT_ID:voucher-platform-api}
+      roles-client-id: ${KEYCLOAK_ROLES_CLIENT_ID:${app.security.keycloak.client-id}}
+    cors:
+      allowed-origins:
+        - "http://localhost:3000"
+        - "http://localhost:5173"
+      allowed-methods: [ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ]
+      allowed-headers: [ "*" ]
+      exposed-headers: [ "*" ]
+      allow-credentials: false
+      max-age-seconds: 3600

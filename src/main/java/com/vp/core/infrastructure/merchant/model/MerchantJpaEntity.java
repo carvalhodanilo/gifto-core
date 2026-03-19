@@ -141,6 +141,53 @@ public class MerchantJpaEntity {
         return e;
     }
 
+    /**
+     * Atualiza os campos mutáveis a partir do aggregate, preservando id, tenantId, version, createdAt e networkLinks.
+     * Deve ser usado em update para não perder o @Version e causar erro de optimistic lock.
+     */
+    public void applyFrom(final Merchant merchant) {
+        this.name = merchant.name();
+        this.fantasyName = merchant.getFantasyName();
+        this.documentValue = merchant.getDocument().getValue();
+
+        final var loc = merchant.getLocation();
+        this.location = (loc == null) ? null : LocationEmbeddable.of(
+                loc.getStreet(),
+                loc.getNumber(),
+                loc.getNeighborhood(),
+                loc.getComplement(),
+                loc.getCity(),
+                loc.getState(),
+                loc.getCountry(),
+                loc.getPostalCode()
+        );
+
+        final var bank = merchant.getBankAccount();
+        if (bank == null) {
+            this.bankAccount = null;
+        } else {
+            this.bankAccount = BankAccountEmbeddable.of(
+                    bank.getBankCode(),
+                    bank.getBankName(),
+                    bank.getBranch(),
+                    bank.getAccountNumber(),
+                    bank.getAccountDigit(),
+                    bank.getAccountType() != null ? bank.getAccountType().name() : null,
+                    bank.getHolderName(),
+                    bank.getHolderDocument() != null ? bank.getHolderDocument().getValue() : null,
+                    bank.getPixKey() != null ? bank.getPixKey().getType().name() : null,
+                    bank.getPixKey() != null ? bank.getPixKey().getValue() : null
+            );
+        }
+
+        this.status = merchant.status().name();
+        this.phone1 = merchant.getPhone1();
+        this.phone2 = merchant.getPhone2();
+        this.email = merchant.getEmail().getValue();
+        this.url = merchant.getUrl().getValue();
+        this.updatedAt = merchant.getUpdatedAt();
+    }
+
     public Merchant toAggregate() {
         final Location loc = (location == null)
                 ? Location.empty()

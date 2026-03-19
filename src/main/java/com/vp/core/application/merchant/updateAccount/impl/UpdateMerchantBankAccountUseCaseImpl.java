@@ -5,21 +5,23 @@ import com.vp.core.application.merchant.updateAccount.UpdateMerchantBankAccountO
 import com.vp.core.application.merchant.updateAccount.UpdateMerchantBankAccountUseCase;
 import com.vp.core.domain.exceptions.NotFoundException;
 import com.vp.core.domain.gateway.MerchantGateway;
+import com.vp.core.domain.merchant.Merchant;
 import com.vp.core.domain.merchant.MerchantId;
-import com.vp.core.domain.tenant.Tenant;
 import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.domain.valueObjects.AccountType;
 import com.vp.core.domain.valueObjects.BankAccount;
 import com.vp.core.domain.valueObjects.Document;
 import com.vp.core.domain.valueObjects.PixKey;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class UpdateMerchantBankAccountUseCaseImpl extends UpdateMerchantBankAccountUseCase {
 
-    private final MerchantGateway tenantGateway;
+    private final MerchantGateway merchantGateway;
 
-    public UpdateMerchantBankAccountUseCaseImpl(final MerchantGateway tenantGateway) {
-        this.tenantGateway = tenantGateway;
+    public UpdateMerchantBankAccountUseCaseImpl(final MerchantGateway merchantGateway) {
+        this.merchantGateway = merchantGateway;
     }
 
     @Override
@@ -28,8 +30,8 @@ public class UpdateMerchantBankAccountUseCaseImpl extends UpdateMerchantBankAcco
         final var merchantId = MerchantId.from(command.merchantId());
         final var tenantId = TenantId.from(command.tenantId());
 
-        final var merchant = tenantGateway.findByIdAndTenantId(merchantId, tenantId)
-                .orElseThrow(() -> NotFoundException.with(Tenant.class, tenantId));
+        final var merchant = merchantGateway.findByIdAndTenantId(merchantId, tenantId)
+                .orElseThrow(() -> NotFoundException.with(Merchant.class, merchantId));
 
         final var accountType = AccountType.valueOf(command.accountType());
         final var pixKey = buildPixKey(command.pixKeyType(), command.pixKeyValue());
@@ -46,7 +48,7 @@ public class UpdateMerchantBankAccountUseCaseImpl extends UpdateMerchantBankAcco
         );
 
         merchant.updateBankAccount(bankAccount);
-        tenantGateway.update(merchant);
+        merchantGateway.update(merchant);
         return UpdateMerchantBankAccountOutput.of(merchantId.getValue(), tenantId.getValue());
     }
 

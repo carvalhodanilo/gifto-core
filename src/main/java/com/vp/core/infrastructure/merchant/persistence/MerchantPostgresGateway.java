@@ -1,13 +1,16 @@
 package com.vp.core.infrastructure.merchant.persistence;
 
+import com.vp.core.domain.exceptions.NotFoundException;
 import com.vp.core.domain.gateway.MerchantGateway;
 import com.vp.core.domain.merchant.Merchant;
 import com.vp.core.domain.merchant.MerchantId;
 import com.vp.core.domain.pagination.Pagination;
+import com.vp.core.domain.pagination.SearchMerchantQuery;
 import com.vp.core.domain.pagination.SearchQuery;
 import com.vp.core.domain.tenant.TenantId;
-import com.vp.core.infrastructure.campaign.model.CampaignJpaEntity;
 import com.vp.core.infrastructure.merchant.model.MerchantJpaEntity;
+import com.vp.core.infrastructure.merchant.persistence.projection.MerchantListProjection;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +35,12 @@ public class MerchantPostgresGateway implements MerchantGateway {
 
     @Override
     public Merchant update(final Merchant merchant) {
-        final var entity = MerchantJpaEntity.from(merchant);
+        final var entity = repository.findByIdAndTenantId(
+                        UUID.fromString(merchant.getId().getValue()),
+                        UUID.fromString(merchant.tenantId().getValue())
+                )
+                .orElseThrow(() -> NotFoundException.with(Merchant.class, merchant.getId()));
+        entity.applyFrom(merchant);
         final var saved = repository.save(entity);
         return saved.toAggregate();
     }
@@ -88,6 +96,23 @@ public class MerchantPostgresGateway implements MerchantGateway {
                 .stream()
                 .map(MerchantJpaEntity::toAggregate)
                 .toList();
+    }
+
+    @Override
+    public Pagination<MerchantListProjection> findAllByTenantId(TenantId tenantId, SearchMerchantQuery query) {
+        var pageable = PageRequest.of(query.page(), query.perPage());
+        var result = repository.findAllByTenantId(
+                UUID.fromString(tenantId.getValue()),
+                query.terms(),
+                query.status(),
+                pageable
+        );
+        return new Pagination<>(
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getContent()
+        );
     }
 
     @Override

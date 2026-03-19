@@ -30,7 +30,9 @@ public interface VoucherJpaRepository extends JpaRepository<VoucherJpaEntity, UU
                 v.display_code as displayCode,
                 v.status as status,
                 v.issued_at as issuedAt,
-                v.expires_at as expiresAt
+                v.expires_at as expiresAt,
+                (select coalesce(sum(le.amount_cents), 0)
+                 from voucher_ledger_entries le where le.voucher_id = v.id and le.type = 'ISSUE') as amountCents
             from vouchers v
             join campaigns c on c.id = v.campaign_id
             where c.tenant_id = :tenantId

@@ -7,8 +7,10 @@ import com.vp.core.domain.gateway.MerchantGateway;
 import com.vp.core.domain.merchant.Merchant;
 import com.vp.core.domain.merchant.MerchantId;
 import com.vp.core.domain.tenant.TenantId;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class ActivateMerchantUseCaseImpl extends ActivateMerchantUseCase {
 
     private final MerchantGateway merchantGateway;

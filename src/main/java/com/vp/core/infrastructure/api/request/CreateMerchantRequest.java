@@ -7,6 +7,7 @@ public record CreateMerchantRequest(
         String phone1,
         String phone2,
         String email,
-        String url
+        String url,
+        LocationRequest location
 ) {
 }

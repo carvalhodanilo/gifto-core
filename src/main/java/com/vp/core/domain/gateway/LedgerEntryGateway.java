@@ -3,6 +3,7 @@ package com.vp.core.domain.gateway;
 import com.vp.core.domain.pagination.Pagination;
 import com.vp.core.domain.pagination.SearchQuery;
 import com.vp.core.domain.pagination.SearchVoucherQuery;
+import com.vp.core.domain.settlement.PeriodKey;
 import com.vp.core.domain.settlement.SettlementBatchId;
 import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.domain.voucher.LedgerEntry;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 public interface LedgerEntryGateway extends Gateway<LedgerEntry, LedgerEntryId> {
 
-    List<LedgerEntry> findUnsettledRedeemAndReversal(TenantId tenantId);
+    List<LedgerEntry> findUnsettledRedeemAndReversal(TenantId tenantId, PeriodKey periodKey);
 
     void markAsSettled(List<LedgerEntryId> ids, SettlementBatchId batchId);
 

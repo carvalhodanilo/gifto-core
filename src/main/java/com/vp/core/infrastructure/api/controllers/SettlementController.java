@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/v1/settlements")
@@ -36,12 +37,10 @@ public class SettlementController {
         this.markSettlementEntryAsPaidUseCase = markSettlementEntryAsPaidUseCase;
     }
 
-    /**
-     * Executa o batch de settlement para o tenant (período = semana ISO anterior, já fechada).
-     * O período atual não é usado pois ainda está em aberto. Se já existir batch para o período anterior, retorna erro.
-     * tenantId obrigatório via header "tenant". Sem parâmetros no body.
-     */
     @PostMapping("/batch/run")
+    // [system_admin]
+    // MANTER O HEADER
+    @PreAuthorize("hasRole('system_admin')")
     public ResponseEntity<RunSettlementBatchResponse> runBatch(
             @RequestHeader(name = "tenant", required = true) String tenantId
     ) {
@@ -51,11 +50,10 @@ public class SettlementController {
         return ResponseEntity.created(location).body(RunSettlementBatchResponse.from(output));
     }
 
-    /**
-     * Busca o settlement do tenant para o período (ISO week: YYYY-Wnn, ex: 2026-W11).
-     * tenantId obrigatório via header "tenant". PeriodKey inválido retorna 400; sem batch retorna 404.
-     */
     @GetMapping("/batch/{periodKey}")
+    // [system_admin]
+    // MANTER O HEADER
+    @PreAuthorize("hasRole('system_admin')")
     public ResponseEntity<GetSettlementByTenantAndPeriodResponse> getByTenantAndPeriod(
             @RequestHeader(name = "tenant", required = true) String tenantId,
             @PathVariable String periodKey
@@ -68,10 +66,9 @@ public class SettlementController {
         return ResponseEntity.ok(GetSettlementByTenantAndPeriodResponse.from(output));
     }
 
-    /**
-     * Marca uma entry de settlement como paga (informa referência de pagamento).
-     * tenantId obrigatório via header "tenant". Batch ou entry inexistente retorna 404.
-     */
+    // [system_admin]
+    // MANTER O HEADER
+    @PreAuthorize("hasRole('system_admin')")
     @PatchMapping("/batch/{batchId}/entries/{entryId}/paid")
     public ResponseEntity<MarkSettlementEntryAsPaidResponse> markEntryAsPaid(
             @RequestHeader(name = "tenant", required = true) String tenantId,

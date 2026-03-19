@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,8 +51,14 @@ public interface VoucherLedgerEntryJpaRepository extends JpaRepository<VoucherLe
             WHERE c.tenant_id = :tenantId
               AND le.type IN ('REDEEM', 'REVERSAL')
               AND le.settlement_entry_id IS NULL
+              AND le.created_at >= :fromInclusive
+              AND le.created_at < :toExclusive
             """, nativeQuery = true)
-    List<UUID> findUnsettledRedeemAndReversalIds(@Param("tenantId") UUID tenantId);
+    List<UUID> findUnsettledRedeemAndReversalIds(
+            @Param("tenantId") UUID tenantId,
+            @Param("fromInclusive") Instant fromInclusive,
+            @Param("toExclusive") Instant toExclusive
+    );
 
     @Modifying
     @Query("UPDATE VoucherLedgerEntryJpaEntity le SET le.settlementEntryId = :settlementEntryId WHERE le.id IN :ledgerIds AND le.merchantId = :merchantId")

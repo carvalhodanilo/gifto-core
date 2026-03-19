@@ -3,6 +3,7 @@ package com.vp.core.infrastructure.voucher;
 import com.vp.core.domain.gateway.LedgerEntryGateway;
 import com.vp.core.domain.pagination.Pagination;
 import com.vp.core.domain.pagination.SearchQuery;
+import com.vp.core.domain.settlement.PeriodKey;
 import com.vp.core.domain.settlement.SettlementBatchId;
 import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.domain.voucher.LedgerEntry;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,8 +42,14 @@ public class LedgerEntryPostgresGateway implements LedgerEntryGateway {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LedgerEntry> findUnsettledRedeemAndReversal(final TenantId tenantId) {
-        final var ids = repository.findUnsettledRedeemAndReversalIds(UUID.fromString(tenantId.getValue()));
+    public List<LedgerEntry> findUnsettledRedeemAndReversal(final TenantId tenantId, final PeriodKey periodKey) {
+        final var fromInclusive = periodKey.getStartDateInclusive().atStartOfDay(ZoneOffset.UTC).toInstant();
+        final var toExclusive = periodKey.getEndDateInclusive().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        final var ids = repository.findUnsettledRedeemAndReversalIds(
+                UUID.fromString(tenantId.getValue()),
+                fromInclusive,
+                toExclusive
+        );
         if (ids.isEmpty()) {
             return List.of();
         }

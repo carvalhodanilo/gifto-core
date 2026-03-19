@@ -43,9 +43,9 @@ public class RunSettlementBatchUseCaseImpl extends RunSettlementBatchUseCase {
                     throw new IllegalStateException("Settlement batch already exists for period " + periodKeyValue + ".");
                 });
 
-        // 2️⃣ Buscar ledger elegível
+        // 2️⃣ Buscar ledger elegível do período anterior
         final var ledgerEntries = ledgerGateway
-                .findUnsettledRedeemAndReversal(tenantId);
+                .findUnsettledRedeemAndReversal(tenantId, periodKey);
 
         if (ledgerEntries.isEmpty()) {
             throw new IllegalStateException("No ledger entries to settle");
@@ -72,7 +72,7 @@ public class RunSettlementBatchUseCaseImpl extends RunSettlementBatchUseCase {
                     .mapToLong(LedgerEntry::amountCents)
                     .sum();
 
-            long fees = calculateFee(gross);
+            long fees = calculateFee(gross - reversals);
 
             long net = gross - reversals - fees;
 

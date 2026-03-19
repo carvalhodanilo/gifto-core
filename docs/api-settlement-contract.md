@@ -4,11 +4,12 @@ Documentação do contrato dos endpoints de **Settlement** para integração. Ba
 
 ---
 
-## Header obrigatório em todos os endpoints
+## Headers obrigatórios (system_admin)
 
-| Header   | Obrigatório | Descrição                          |
-|----------|-------------|------------------------------------|
-| `tenant` | Sim         | UUID do tenant (identificação do cliente). |
+| Header            | Obrigatório | Descrição |
+|------------------|-------------|-----------|
+| `Authorization`  | Sim         | `Bearer <access_token>` |
+| `tenant`         | Sim         | UUID do tenant (identificação do cliente). |
 
 ---
 
@@ -20,10 +21,10 @@ Calcula os valores devidos a cada merchant para o **período anterior** (semana 
 
 - **Método:** `POST`
 - **Path:** `/v1/settlements/batch/run`
-- **Headers:** `tenant` (obrigatório)
+- **Headers:** `Authorization: Bearer <access_token>`, `tenant` (obrigatório)
 - **Body:** nenhum. Não enviar body.
 
-Exemplo: `POST /v1/settlements/batch/run` com header `tenant: <uuid-do-tenant>`.
+Exemplo: `POST /v1/settlements/batch/run` com `Authorization: Bearer <access_token>` e `tenant: <uuid-do-tenant>`.
 
 ### Response – sucesso
 
@@ -61,14 +62,14 @@ Retorna o batch de settlement do tenant para o período informado (semana ISO).
 
 - **Método:** `GET`
 - **Path:** `/v1/settlements/batch/{periodKey}`
-- **Headers:** `tenant` (obrigatório)
+- **Headers:** `Authorization: Bearer <access_token>`, `tenant` (obrigatório)
 - **Path parameter:**
 
 | Nome        | Tipo   | Descrição |
 |-------------|--------|-----------|
 | `periodKey` | string | Período em formato **ISO week**: `YYYY-Wnn` (ex.: `2026-W11`). |
 
-Exemplo: `GET /v1/settlements/batch/2026-W11` com header `tenant: <uuid-do-tenant>`.
+Exemplo: `GET /v1/settlements/batch/2026-W11` com `Authorization: Bearer <access_token>` e `tenant: <uuid-do-tenant>`.
 
 ### Response – sucesso
 
@@ -138,7 +139,7 @@ Registra o pagamento de uma entry de settlement (um merchant do batch), informan
 
 - **Método:** `PATCH`
 - **Path:** `/v1/settlements/batch/{batchId}/entries/{entryId}/paid`
-- **Headers:** `tenant` (obrigatório), `Content-Type: application/json`
+- **Headers:** `Authorization: Bearer <access_token>`, `tenant` (obrigatório), `Content-Type: application/json`
 - **Path parameters:**
 
 | Nome       | Tipo   | Descrição |
@@ -158,7 +159,7 @@ Registra o pagamento de uma entry de settlement (um merchant do batch), informan
 |--------------|--------|-------------|-----------|
 | `paymentRef` | string | Sim         | Referência do pagamento (ex.: ID do PIX, número do boleto). |
 
-Exemplo: `PATCH /v1/settlements/batch/550e8400-e29b-41d4-a716-446655440000/entries/660e8400-e29b-41d4-a716-446655440001/paid` com header `tenant: <uuid>` e body acima.
+Exemplo: `PATCH /v1/settlements/batch/550e8400-e29b-41d4-a716-446655440000/entries/660e8400-e29b-41d4-a716-446655440001/paid` com `Authorization: Bearer <access_token>`, `tenant: <uuid>` e body acima.
 
 ### Response – sucesso
 
@@ -221,6 +222,6 @@ Todos os erros documentados retornam um JSON com um único campo:
 
 | Método  | Path | Descrição |
 |---------|------|-----------|
-| `POST`  | `/v1/settlements/batch/run` | Executa o batch de settlement para o período anterior (semana fechada); tenant no header, sem body. |
-| `GET`   | `/v1/settlements/batch/{periodKey}` | Retorna o settlement do tenant para o período (tenant no header). |
-| `PATCH` | `/v1/settlements/batch/{batchId}/entries/{entryId}/paid` | Marca a entry como paga (tenant no header, paymentRef no body). |
+| `POST`  | `/v1/settlements/batch/run` | Executa o batch de settlement para o período anterior (semana fechada); `Authorization` + `tenant` no header, sem body. |
+| `GET`   | `/v1/settlements/batch/{periodKey}` | Retorna o settlement do tenant para o período (`Authorization` + `tenant` no header). |
+| `PATCH` | `/v1/settlements/batch/{batchId}/entries/{entryId}/paid` | Marca a entry como paga (`Authorization` + `tenant` no header, `paymentRef` no body). |

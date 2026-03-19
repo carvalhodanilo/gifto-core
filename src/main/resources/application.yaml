@@ -31,6 +31,12 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${app.security.keycloak.issuer-uri:}
+
 server:
   port: 8080
   shutdown: graceful
@@ -60,7 +66,21 @@ management:
 
 app:
   security:
-    enabled: false
+    enabled: true
+    keycloak:
+      issuer-uri: ${KEYCLOAK_ISSUER_URI:}
+      client-id: ${KEYCLOAK_CLIENT_ID:voucher-platform-api}
+      roles-client-id: ${KEYCLOAK_ROLES_CLIENT_ID:${app.security.keycloak.client-id}}
+    cors:
+      allowed-origins: []
+      allowed-origin-patterns:
+        - "http://localhost:*"
+        - "http://127.0.0.1:*"
+      allowed-methods: [ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ]
+      allowed-headers: [ "*" ]
+      exposed-headers: [ "*" ]
+      allow-credentials: false
+      max-age-seconds: 3600
   voucher:
     token:
       secret: ${VOUCHER_TOKEN_SECRET:change-me-dev-secret}

@@ -124,7 +124,7 @@ public class Merchant extends AggregateRoot<MerchantId> {
                 document,
                 location,
                 bankAccount,
-                MerchantStatus.ACTIVE,
+                MerchantStatus.SUSPENDED,
                 phone1,
                 phone2,
                 email,

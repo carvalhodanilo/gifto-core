@@ -1,0 +1,631 @@
+{
+  "realm": "gifto",
+  "enabled": true,
+  "displayName": "Gifto (Local)",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "clients": [
+    {
+      "clientId": "voucher-platform-api",
+      "name": "Voucher Platform API",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
+      },
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "protocolMappers": [
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "id",
+            "claim.name": "sub",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "tenant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "tenant_id",
+            "claim.name": "tenant_id",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "aggregate.attrs": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "merchant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "merchant_id",
+            "claim.name": "merchant_id",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "aggregate.attrs": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "voucher-platform-admin-web",
+      "name": "Voucher Platform Admin Web",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:5173/*"
+      },
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles",
+        "web-origins"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "protocolMappers": [
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "id",
+            "claim.name": "sub",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "tenant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "tenant_id",
+            "claim.name": "tenant_id",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "aggregate.attrs": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "merchant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "merchant_id",
+            "claim.name": "merchant_id",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "aggregate.attrs": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "voucher-platform-sales-web",
+      "name": "Voucher Platform Sales Web",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [
+        "http://localhost:3001/*",
+        "http://localhost:5174/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3001",
+        "http://localhost:5174"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3001/*##http://localhost:5174/*"
+      },
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles",
+        "web-origins"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "protocolMappers": [
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "id",
+            "claim.name": "sub",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "tenant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "tenant_id",
+            "claim.name": "tenant_id",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "aggregate.attrs": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "merchant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "merchant_id",
+            "claim.name": "merchant_id",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "aggregate.attrs": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "roles": {
+    "client": {
+      "voucher-platform-api": [
+        {
+          "name": "system_admin",
+          "description": "System administrator"
+        },
+        {
+          "name": "tenant_admin",
+          "description": "Tenant administrator"
+        },
+        {
+          "name": "merchant_admin",
+          "description": "Merchant administrator"
+        },
+        {
+          "name": "merchant_operator",
+          "description": "Merchant operator"
+        },
+        {
+          "name": "tenant_operator",
+          "description": "Tenant operator (sell vouchers)"
+        }
+      ]
+    }
+  },
+  "users": [
+    {
+      "username": "system.admin@local.test",
+      "enabled": true,
+      "email": "system.admin@local.test",
+      "emailVerified": true,
+      "firstName": "System",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "system_admin"
+        ]
+      }
+    },
+    {
+      "username": "tenant.admin@local.test",
+      "enabled": true,
+      "email": "tenant.admin@local.test",
+      "emailVerified": true,
+      "firstName": "Tenant",
+      "lastName": "Admin",
+      "attributes": {
+        "tenant_id": [
+          "57681649-b182-49fd-904e-19adcbfa3ada"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "tenant_admin"
+        ]
+      }
+    },
+    {
+      "username": "merchant.admin@local.test",
+      "enabled": true,
+      "email": "merchant.admin@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant",
+      "lastName": "Admin",
+      "attributes": {
+        "tenant_id": [
+          "57681649-b182-49fd-904e-19adcbfa3ada"
+        ],
+        "merchant_id": [
+          "cd13011f-5bde-4f3b-92b1-3a99845e2f41"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_admin"
+        ]
+      }
+    },
+    {
+      "username": "merchant.operator@local.test",
+      "enabled": true,
+      "email": "merchant.operator@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant",
+      "lastName": "Operator",
+      "attributes": {
+        "tenant_id": [
+          "57681649-b182-49fd-904e-19adcbfa3ada"
+        ],
+        "merchant_id": [
+          "cd13011f-5bde-4f3b-92b1-3a99845e2f41"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_operator"
+        ]
+      }
+    },
+    {
+      "username": "tenant.operator@local.test",
+      "enabled": true,
+      "email": "tenant.operator@local.test",
+      "emailVerified": true,
+      "firstName": "Tenant",
+      "lastName": "Operator",
+      "attributes": {
+        "tenant_id": [
+          "57681649-b182-49fd-904e-19adcbfa3ada"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "tenant_operator"
+        ]
+      }
+    },
+    {
+      "username": "tenant2.admin@local.test",
+      "enabled": true,
+      "email": "tenant2.admin@local.test",
+      "emailVerified": true,
+      "firstName": "Tenant2",
+      "lastName": "Admin",
+      "attributes": {
+        "tenant_id": [
+          "8b4d1c2e-1b4c-4f3b-93e9-8c0f3f55c0f0"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "tenant_admin"
+        ]
+      }
+    },
+    {
+      "username": "tenant2.operator@local.test",
+      "enabled": true,
+      "email": "tenant2.operator@local.test",
+      "emailVerified": true,
+      "firstName": "Tenant2",
+      "lastName": "Operator",
+      "attributes": {
+        "tenant_id": [
+          "8b4d1c2e-1b4c-4f3b-93e9-8c0f3f55c0f0"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "tenant_operator"
+        ]
+      }
+    },
+    {
+      "username": "merchant2.admin@local.test",
+      "enabled": true,
+      "email": "merchant2.admin@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant2",
+      "lastName": "Admin",
+      "attributes": {
+        "tenant_id": [
+          "57681649-b182-49fd-904e-19adcbfa3ada"
+        ],
+        "merchant_id": [
+          "9a8ff1e3-0b3b-4d7e-8f4b-1fbf5b5b4c0a"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_admin"
+        ]
+      }
+    },
+    {
+      "username": "merchant2.operator@local.test",
+      "enabled": true,
+      "email": "merchant2.operator@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant2",
+      "lastName": "Operator",
+      "attributes": {
+        "tenant_id": [
+          "57681649-b182-49fd-904e-19adcbfa3ada"
+        ],
+        "merchant_id": [
+          "9a8ff1e3-0b3b-4d7e-8f4b-1fbf5b5b4c0a"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_operator"
+        ]
+      }
+    },
+    {
+      "username": "merchant3.admin@local.test",
+      "enabled": true,
+      "email": "merchant3.admin@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant3",
+      "lastName": "Admin",
+      "attributes": {
+        "tenant_id": [
+          "8b4d1c2e-1b4c-4f3b-93e9-8c0f3f55c0f0"
+        ],
+        "merchant_id": [
+          "d0c8d6b1-9c74-4df1-8dd6-ef0b5d6d4b9c"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_admin"
+        ]
+      }
+    },
+    {
+      "username": "merchant3.operator@local.test",
+      "enabled": true,
+      "email": "merchant3.operator@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant3",
+      "lastName": "Operator",
+      "attributes": {
+        "tenant_id": [
+          "8b4d1c2e-1b4c-4f3b-93e9-8c0f3f55c0f0"
+        ],
+        "merchant_id": [
+          "d0c8d6b1-9c74-4df1-8dd6-ef0b5d6d4b9c"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_operator"
+        ]
+      }
+    },
+    {
+      "username": "merchant4.admin@local.test",
+      "enabled": true,
+      "email": "merchant4.admin@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant4",
+      "lastName": "Admin",
+      "attributes": {
+        "tenant_id": [
+          "8b4d1c2e-1b4c-4f3b-93e9-8c0f3f55c0f0"
+        ],
+        "merchant_id": [
+          "3d4ccf0a-2f6d-4a7a-9d7b-7f6a8a4c5d1e"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_admin"
+        ]
+      }
+    },
+    {
+      "username": "merchant4.operator@local.test",
+      "enabled": true,
+      "email": "merchant4.operator@local.test",
+      "emailVerified": true,
+      "firstName": "Merchant4",
+      "lastName": "Operator",
+      "attributes": {
+        "tenant_id": [
+          "8b4d1c2e-1b4c-4f3b-93e9-8c0f3f55c0f0"
+        ],
+        "merchant_id": [
+          "3d4ccf0a-2f6d-4a7a-9d7b-7f6a8a4c5d1e"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Local123!",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "voucher-platform-api": [
+          "merchant_operator"
+        ]
+      }
+    }
+  ]
+}
