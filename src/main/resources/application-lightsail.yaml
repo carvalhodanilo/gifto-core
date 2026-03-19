@@ -1,0 +1,38 @@
+# Perfil para deploy MVP (Docker na VM, atrás de Nginx em /api).
+# Variáveis críticas: PUBLIC_IP, KEYCLOAK_ISSUER_URI, SPRING_DATASOURCE_* , VOUCHER_TOKEN_SECRET
+spring:
+  config:
+    activate:
+      on-profile: lightsail
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/voucherdb}
+    username: ${SPRING_DATASOURCE_USERNAME:voucher}
+    password: ${SPRING_DATASOURCE_PASSWORD:voucher}
+    driver-class-name: org.postgresql.Driver
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Deve coincidir com o claim "iss" do JWT emitido pelo Keycloak (URL pública).
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:}
+          # JWKS via rede Docker (evita hairpin NAT ao IP público da própria VM).
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/auth/realms/gifto/protocol/openid-connect/certs}
+
+app:
+  security:
+    keycloak:
+      issuer-uri: ${KEYCLOAK_ISSUER_URI:}
+      client-id: ${KEYCLOAK_CLIENT_ID:voucher-platform-api}
+      roles-client-id: ${KEYCLOAK_ROLES_CLIENT_ID:${app.security.keycloak.client-id}}
+    cors:
+      allowed-origins: []
+      allowed-origin-patterns:
+        # Browser chamando a API no mesmo host (IP público Lightsail), ex.: http://203.0.113.10:3000
+        - "http://${PUBLIC_IP}:*"
+      allowed-methods: [ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ]
+      allowed-headers: [ "*" ]
+      exposed-headers: [ "*" ]
+      allow-credentials: false
+      max-age-seconds: 3600

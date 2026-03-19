@@ -1,0 +1,110 @@
+# Stack MVP: Nginx (80) + backend Spring + Keycloak + Postgres (app) + Postgres (Keycloak).
+# Baseado em infra/docker-compose.yaml e infra/keycloak/docker-compose.yaml — mantido unificado para a VM.
+#
+# Na raiz do repositório (core):
+#   docker compose --env-file deploy/lightsail/.env -f deploy/lightsail/docker-compose.yml up -d --build
+#
+# Ou, a partir de deploy/lightsail/:
+#   docker compose --env-file .env -f docker-compose.yml up -d --build
+
+services:
+  reverse-proxy:
+    image: nginx:1.27-alpine
+    container_name: gifto-lightsail-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - keycloak
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: gifto-lightsail-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: lightsail
+      PUBLIC_IP: ${PUBLIC_IP}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-voucherdb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-voucher}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      KEYCLOAK_JWK_SET_URI: ${KEYCLOAK_JWK_SET_URI:-http://keycloak:8080/auth/realms/gifto/protocol/openid-connect/certs}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-voucher-platform-api}
+      VOUCHER_TOKEN_SECRET: ${VOUCHER_TOKEN_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gifto-lightsail-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-voucherdb}
+      POSTGRES_USER: ${POSTGRES_USER:-voucher}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: UTC
+    volumes:
+      - voucher_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-voucher} -d ${POSTGRES_DB:-voucherdb}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  keycloak-postgres:
+    image: postgres:16-alpine
+    container_name: gifto-lightsail-keycloak-postgres
+    environment:
+      POSTGRES_DB: ${KC_DB_NAME:-keycloak}
+      POSTGRES_USER: ${KC_DB_USERNAME:-keycloak}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+      TZ: UTC
+    volumes:
+      - keycloak_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KC_DB_USERNAME:-keycloak} -d ${KC_DB_NAME:-keycloak}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: gifto-lightsail-keycloak
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-postgres
+      KC_DB_URL_DATABASE: ${KC_DB_NAME:-keycloak}
+      KC_DB_USERNAME: ${KC_DB_USERNAME:-keycloak}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      # Atrás do Nginx em /auth (URL pública: http://SEU_IP/auth/...)
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME: ${PUBLIC_IP}
+      KC_HOSTNAME_PORT: "80"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ../../infra/keycloak/realm:/opt/keycloak/data/import:ro
+    restart: unless-stopped
+
+volumes:
+  voucher_pg_data:
+  keycloak_pg_data:

@@ -1,5 +1,8 @@
 HELP.md
 target/
+
+# Deploy Lightsail — credenciais locais (use .env.lightsail.example como modelo)
+deploy/lightsail/.env
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

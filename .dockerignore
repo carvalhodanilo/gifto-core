@@ -1,0 +1,25 @@
+# Build output
+target/
+
+# VCS / IDE
+.git
+.gitignore
+.idea
+*.iml
+.vscode
+
+# Local Maven cache (if ever present in context)
+.m2
+
+# Deploy docs — not needed inside the image
+deploy/
+
+# Infra compose/realm — baked at runtime via compose volumes where needed
+infra/
+
+# Cursor / tooling
+.cursor
+
+# Segredos locais (não copiar para contexto de build)
+.env
+.env.local
