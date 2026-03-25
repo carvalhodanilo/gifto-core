@@ -2,6 +2,14 @@
 
 Stack mínima para validar o **backend** em nuvem: **Nginx** (porta 80) + **Spring Boot** + **Keycloak** + **dois Postgres** (app e Keycloak), sem front-end, sem Kubernetes, sem automação de deploy.
 
+### Lembrete: Keycloak e tráfego **sem SSL** (MVP)
+
+Neste deploy **não há HTTPS** (nem no Nginx nem entre browser e servidor). O realm importado (`realm-gifto.json`) vem com `sslRequired: external`; em ambiente só HTTP é comum precisar de **SSL required = None** no realm **`gifto`** e, para o **Admin Console**, também no realm **`master`** — caso contrário aparece *“HTTPS required”*.
+
+**Isso é aceitável só para MVP / validação.** O próximo passo natural é **domínio + TLS no Nginx** (ex.: Let’s Encrypt) e então **voltar a exigir SSL** nos realms Keycloak (`external` ou `all`, conforme política) e atualizar todas as URLs para `https://` (backend, Keycloak, variáveis do front).
+
+Integração do front (React + Vite) com esta stack: ver [`FRONTEND_VITE_CURSOR_PROMPT.md`](FRONTEND_VITE_CURSOR_PROMPT.md).
+
 ## O que foi gerado
 
 | Arquivo / pasta | Descrição |
@@ -11,6 +19,7 @@ Stack mínima para validar o **backend** em nuvem: **Nginx** (porta 80) + **Spri
 | [`.env.lightsail.example`](.env.lightsail.example) | Modelo de variáveis de ambiente |
 | [`../../Dockerfile`](../../Dockerfile) | Imagem do backend (Maven multi-stage, Java 21) |
 | [`../../src/main/resources/application-lightsail.yaml`](../../src/main/resources/application-lightsail.yaml) | Perfil Spring: datasource por env, `issuer-uri` + `jwk-set-uri` interno, CORS por `PUBLIC_IP` |
+| [`FRONTEND_VITE_CURSOR_PROMPT.md`](FRONTEND_VITE_CURSOR_PROMPT.md) | Prompt para usar no Cursor no app **React + Vite** (alinhado a este backend) |
 
 O realm Keycloak continua em [`../../infra/keycloak/realm`](../../infra/keycloak/realm) (mesmo JSON do ambiente local).
 
@@ -135,13 +144,14 @@ O backend valida o JWT com:
 3. **Keycloak atrás do proxy**  
    O compose define `KC_HTTP_RELATIVE_PATH=/auth`, `KC_PROXY_HEADERS=xforwarded`, `KC_HOSTNAME` = `PUBLIC_IP`, `KC_HOSTNAME_STRICT=false`, `KC_HOSTNAME_STRICT_HTTPS=false`.
 
-### Quando tiver domínio + HTTPS
+### Quando tiver domínio + HTTPS (reativar SSL)
 
 - Apontar DNS para a VM; no Nginx terminar TLS (ex.: Let’s Encrypt).
 - Atualizar **`PUBLIC_IP`** / hostname nas envs do Keycloak e **`KEYCLOAK_ISSUER_URI`** para `https://seu-dominio/auth/realms/gifto`.
 - Ajustar **`KEYCLOAK_JWK_SET_URI`** se mudar o path interno (normalmente permanece o mesmo serviço Docker).
 - Atualizar CORS no perfil `lightsail` (origins ou padrões com `https://`).
-- Reforçar `sslRequired` no realm conforme a política desejada.
+- **Reativar SSL** nos realms Keycloak (`external` ou `all`): alinhar com `realm-gifto.json` ou ajustar no Admin Console; remover a exceção “HTTP só” do MVP.
+- Atualizar variáveis do front (`VITE_*`) e URLs de redirect no Keycloak para `https://`.
 
 ## Limitações aceitáveis do MVP
 
