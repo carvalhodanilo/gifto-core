@@ -3,14 +3,31 @@ package com.vp.core.infrastructure.api.controllers;
 import com.vp.core.application.tenant.create.CreateTenantCommand;
 import com.vp.core.application.tenant.create.CreateTenantOutput;
 import com.vp.core.application.tenant.create.CreateTenantUseCase;
+import com.vp.core.application.tenant.get.GetTenantOutput;
+import com.vp.core.application.tenant.get.GetTenantUseCase;
 import com.vp.core.application.tenant.getAll.GetAllTenantsOutput;
 import com.vp.core.application.tenant.getAll.GetAllTenantsUseCase;
+import com.vp.core.application.tenant.listPaged.ListTenantsPagedCommand;
+import com.vp.core.application.tenant.listPaged.ListTenantsPagedOutput;
+import com.vp.core.application.tenant.listPaged.ListTenantsPagedUseCase;
+import com.vp.core.application.tenant.update.UpdateTenantCommand;
+import com.vp.core.application.tenant.update.UpdateTenantOutput;
+import com.vp.core.application.tenant.update.UpdateTenantUseCase;
+import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantOutput;
+import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantUseCase;
+import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantCommand;
+import com.vp.core.domain.pagination.Pagination;
+import com.vp.core.domain.pagination.SearchMerchantQuery;
+import com.vp.core.domain.pagination.SearchTenantQuery;
+import com.vp.core.domain.valueObjects.URL;
 import com.vp.core.infrastructure.api.request.CreateTenantRequest;
+import com.vp.core.infrastructure.api.request.UpdateTenantRequest;
 import com.vp.core.infrastructure.api.response.CreateTenantResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 
 import java.net.URI;
 
@@ -20,13 +37,25 @@ public class TenantController {
 
     private final CreateTenantUseCase createTenantUseCase;
     private final GetAllTenantsUseCase getAllTenantsUseCase;
+    private final ListTenantsPagedUseCase listTenantsPagedUseCase;
+    private final GetTenantUseCase getTenantUseCase;
+    private final UpdateTenantUseCase updateTenantUseCase;
+    private final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase;
 
     public TenantController(
             final CreateTenantUseCase createTenantUseCase,
-            final GetAllTenantsUseCase getAllTenantsUseCase
+            final GetAllTenantsUseCase getAllTenantsUseCase,
+            final ListTenantsPagedUseCase listTenantsPagedUseCase,
+            final GetTenantUseCase getTenantUseCase,
+            final UpdateTenantUseCase updateTenantUseCase,
+            final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase
     ) {
         this.createTenantUseCase = createTenantUseCase;
         this.getAllTenantsUseCase = getAllTenantsUseCase;
+        this.listTenantsPagedUseCase = listTenantsPagedUseCase;
+        this.getTenantUseCase = getTenantUseCase;
+        this.updateTenantUseCase = updateTenantUseCase;
+        this.listMerchantsByTenantUseCase = listMerchantsByTenantUseCase;
     }
 
     @PostMapping
@@ -51,5 +80,60 @@ public class TenantController {
     @PreAuthorize("hasRole('system_admin')")
     public ResponseEntity<GetAllTenantsOutput> findAllActive() {
         return ResponseEntity.ok(getAllTenantsUseCase.execute());
+    }
+
+    @GetMapping("/paged")
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<Pagination<ListTenantsPagedOutput>> listPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int perPage,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String document
+    ) {
+        final var query = new SearchTenantQuery(page, perPage, name, document);
+        final var command = new ListTenantsPagedCommand(query);
+        return ResponseEntity.ok(listTenantsPagedUseCase.execute(command));
+    }
+
+    @GetMapping("/{tenantId}")
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<GetTenantOutput> getById(@PathVariable String tenantId) {
+        return ResponseEntity.ok(getTenantUseCase.execute(tenantId));
+    }
+
+    @PatchMapping("/{tenantId}")
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<UpdateTenantOutput> update(
+            @PathVariable String tenantId,
+            @RequestBody @Valid UpdateTenantRequest body
+    ) {
+        final var out = updateTenantUseCase.execute(new UpdateTenantCommand(
+                tenantId,
+                body.name(),
+                body.fantasyName(),
+                body.phone1(),
+                body.phone2(),
+                body.email(),
+                URL.with(body.url())
+        ));
+        return ResponseEntity.ok(out);
+    }
+
+    @GetMapping("/{tenantId}/merchants")
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<Pagination<ListMerchantsByTenantOutput>> listMerchantsByTenant(
+            @PathVariable String tenantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int perPage,
+            @RequestParam(required = false) String terms,
+            @RequestParam(required = false) String status
+    ) {
+        final var search = new SearchMerchantQuery(page, perPage, terms, status);
+        final var command = new ListMerchantsByTenantCommand(tenantId, search);
+        return ResponseEntity.ok(listMerchantsByTenantUseCase.execute(command));
     }
 }

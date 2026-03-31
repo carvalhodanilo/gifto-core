@@ -169,3 +169,21 @@ O backend valida o JWT com:
 ---
 
 **Dica:** começar com **IP público** e variáveis centralizadas no `.env` reduz retrabalho na hora de plugar domínio e TLS — em geral é **reconfiguração + Nginx**, não reescrita do backend.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+docker compose --env-file deploy/lightsail/.env -f deploy/lightsail/docker-compose.yml up -d --build --force-recreate reverse-proxy

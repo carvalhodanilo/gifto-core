@@ -8,8 +8,10 @@ import com.vp.core.domain.gateway.TenantGateway;
 import com.vp.core.domain.tenant.Tenant;
 import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.domain.valueObjects.Email;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class UpdateTenantUseCaseImpl extends UpdateTenantUseCase {
 
     private final TenantGateway tenantGateway;

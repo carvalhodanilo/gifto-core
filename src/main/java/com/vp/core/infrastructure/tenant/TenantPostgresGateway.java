@@ -3,10 +3,13 @@ package com.vp.core.infrastructure.tenant;
 import com.vp.core.domain.gateway.TenantGateway;
 import com.vp.core.domain.pagination.Pagination;
 import com.vp.core.domain.pagination.SearchQuery;
+import com.vp.core.domain.pagination.SearchTenantQuery;
 import com.vp.core.domain.tenant.Tenant;
 import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.infrastructure.tenant.model.TenantJpaEntity;
 import com.vp.core.infrastructure.tenant.persistence.TenantJpaRepository;
+import com.vp.core.infrastructure.tenant.persistence.projection.TenantListProjection;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,6 +51,22 @@ public class TenantPostgresGateway implements TenantGateway {
     @Override
     public Pagination<Tenant> findAll(final SearchQuery aQuery) {
         throw new UnsupportedOperationException("Pagination not implemented yet");
+    }
+
+    @Override
+    public Pagination<TenantListProjection> findAllPaged(final SearchTenantQuery query) {
+        final var pageable = PageRequest.of(query.page(), query.perPage());
+        final var result = repository.findAllPaged(
+                query.name(),
+                query.document(),
+                pageable
+        );
+        return new Pagination<>(
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getContent()
+        );
     }
 
     @Override
