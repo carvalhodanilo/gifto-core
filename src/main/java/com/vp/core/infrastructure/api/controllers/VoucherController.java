@@ -169,10 +169,16 @@ public class VoucherController {
     }
 
     @GetMapping("/display-code/{displayCode}")
+    @PreAuthorize("hasAnyRole('merchant_admin', 'merchant_operator')")
     public ResponseEntity<GetByDisplayCodeOutput> getByDisplayCode(
             @PathVariable String displayCode
     ) {
-        final var response = getByDisplayCodeUseCase.execute(new GetByDisplayCodeCommand(displayCode));
+        final var merchantId = currentUserProvider.getCurrentMerchantId();
+        accessScopeService.ensureMerchantAccess(merchantId);
+        final var tenantId = currentUserProvider.getCurrentTenantId();
+        final var response = getByDisplayCodeUseCase.execute(
+                new GetByDisplayCodeCommand(tenantId, displayCode)
+        );
         return ResponseEntity.ok(response);
     }
 

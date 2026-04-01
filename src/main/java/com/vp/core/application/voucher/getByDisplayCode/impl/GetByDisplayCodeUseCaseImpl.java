@@ -1,17 +1,20 @@
 package com.vp.core.application.voucher.getByDisplayCode.impl;
 
-import com.vp.core.application.VoucherTokenService;
 import com.vp.core.application.voucher.getByDisplayCode.GetByDisplayCodeCommand;
 import com.vp.core.application.voucher.getByDisplayCode.GetByDisplayCodeOutput;
 import com.vp.core.application.voucher.getByDisplayCode.GetByDisplayCodeUseCase;
 import com.vp.core.domain.exceptions.NotFoundException;
 import com.vp.core.domain.gateway.CampaignGateway;
 import com.vp.core.domain.gateway.VoucherGateway;
+import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.domain.validation.DomainError;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GetByDisplayCodeUseCaseImpl extends GetByDisplayCodeUseCase {
+
+    private static final DomainError VOUCHER_NOT_FOUND =
+            new DomainError("Voucher not found with the provided Display Code");
 
     private final VoucherGateway voucherGateway;
     private final CampaignGateway campaignGateway;
@@ -26,11 +29,12 @@ public class GetByDisplayCodeUseCaseImpl extends GetByDisplayCodeUseCase {
 
     @Override
     public GetByDisplayCodeOutput execute(final GetByDisplayCodeCommand command) {
+        final var tenantId = TenantId.from(command.tenantId());
         final var voucher = voucherGateway.findByDisplayCode(command.displayCode())
-                .orElseThrow(() -> NotFoundException.with(new DomainError("Voucher not found with the provided publicToken")));
+                .orElseThrow(() -> NotFoundException.with(VOUCHER_NOT_FOUND));
 
-        final var campaign = campaignGateway.findById(voucher.campaignId())
-                .orElseThrow(() -> new RuntimeException("Campaign not found: " + voucher.campaignId().getValue()));
+        final var campaign = campaignGateway.findByTenantIdAndId(tenantId, voucher.campaignId())
+                .orElseThrow(() -> NotFoundException.with(VOUCHER_NOT_FOUND));
 
         final var balance = voucher.balanceCents();
 
