@@ -47,6 +47,12 @@ public class VoucherJpaEntity {
     @Column(name = "issued_at")
     private Instant issuedAt;
 
+    @Column(name = "buyer_name")
+    private String buyerName;
+
+    @Column(name = "buyer_phone")
+    private String buyerPhone;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -77,6 +83,8 @@ public class VoucherJpaEntity {
         e.status = voucher.status().name();
         e.expiresAt = voucher.expiresAt();
         e.issuedAt = voucher.issuedAt();
+        e.buyerName = voucher.buyerName();
+        e.buyerPhone = voucher.buyerPhone();
 
         e.createdAt = voucher.getCreatedAt();
         e.updatedAt = voucher.getUpdatedAt();
@@ -106,7 +114,9 @@ public class VoucherJpaEntity {
                 createdAt,
                 updatedAt,
                 version,
-                issuedAt
+                issuedAt,
+                buyerName,
+                buyerPhone
         );
     }
 

@@ -37,7 +37,9 @@ public class ListByTenantUseCaseImpl extends ListByTenantUseCase {
                         voucher.getStatus(),
                         voucher.getAmountCents(),
                         voucher.getIssuedAt(),
-                        voucher.getExpiresAt()
+                        voucher.getExpiresAt(),
+                        voucher.getBuyerName(),
+                        voucher.getBuyerPhone()
                 ));
     }
 }

@@ -31,6 +31,8 @@ public interface VoucherJpaRepository extends JpaRepository<VoucherJpaEntity, UU
                 v.status as status,
                 v.issued_at as issuedAt,
                 v.expires_at as expiresAt,
+                v.buyer_name as buyerName,
+                v.buyer_phone as buyerPhone,
                 (select coalesce(sum(le.amount_cents), 0)
                  from voucher_ledger_entries le where le.voucher_id = v.id and le.type = 'ISSUE') as amountCents
             from vouchers v
@@ -39,6 +41,8 @@ public interface VoucherJpaRepository extends JpaRepository<VoucherJpaEntity, UU
               and (:campaignName is null or lower(c.name) like lower(concat('%', :campaignName, '%')))
               and (:status is null or v.status = :status)
               and (:displayCode is null or lower(v.display_code) like lower(concat('%', :displayCode, '%')))
+              and (:buyerName is null or :buyerName = '' or lower(v.buyer_name) like lower(concat('%', :buyerName, '%')))
+              and (:buyerPhone is null or :buyerPhone = '' or replace(v.buyer_phone, ' ', '') like concat('%', replace(:buyerPhone, ' ', ''), '%'))
             order by v.issued_at desc
         """,
             countQuery = """
@@ -49,6 +53,8 @@ public interface VoucherJpaRepository extends JpaRepository<VoucherJpaEntity, UU
               and (:campaignName is null or lower(c.name) like lower(concat('%', :campaignName, '%')))
               and (:status is null or v.status = :status)
               and (:displayCode is null or lower(v.display_code) like lower(concat('%', :displayCode, '%')))
+              and (:buyerName is null or :buyerName = '' or lower(v.buyer_name) like lower(concat('%', :buyerName, '%')))
+              and (:buyerPhone is null or :buyerPhone = '' or replace(v.buyer_phone, ' ', '') like concat('%', replace(:buyerPhone, ' ', ''), '%'))
         """,
             nativeQuery = true
     )
@@ -57,6 +63,8 @@ public interface VoucherJpaRepository extends JpaRepository<VoucherJpaEntity, UU
             @Param("campaignName") String campaignName,
             @Param("status") String status,
             @Param("displayCode") String displayCode,
+            @Param("buyerName") String buyerName,
+            @Param("buyerPhone") String buyerPhone,
             Pageable pageable
     );
 }

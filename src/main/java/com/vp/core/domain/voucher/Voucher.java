@@ -27,6 +27,8 @@ public class Voucher extends AggregateRoot<VoucherId> {
     private VoucherStatus status;
     private Instant expiresAt;
     private Instant issuedAt;
+    private String buyerName;
+    private String buyerPhone;
 
     private final List<LedgerEntry> ledger = new ArrayList<>();
     private long version;
@@ -40,6 +42,8 @@ public class Voucher extends AggregateRoot<VoucherId> {
             final VoucherStatus status,
             final Instant expiresAt,
             final Instant issuedAt,
+            final String buyerName,
+            final String buyerPhone,
             final List<LedgerEntry> ledger
     ) {
         super(id);
@@ -50,6 +54,8 @@ public class Voucher extends AggregateRoot<VoucherId> {
         this.status = status;
         this.expiresAt = expiresAt;
         this.issuedAt = issuedAt;
+        this.buyerName = buyerName;
+        this.buyerPhone = buyerPhone;
 
         if (ledger != null) {
             this.ledger.addAll(ledger);
@@ -68,7 +74,9 @@ public class Voucher extends AggregateRoot<VoucherId> {
             final Instant createdAt,
             final Instant updatedAt,
             final long version,
-            final Instant issuedAt
+            final Instant issuedAt,
+            final String buyerName,
+            final String buyerPhone
     ) {
         super(id, createdAt, updatedAt);
 
@@ -80,6 +88,8 @@ public class Voucher extends AggregateRoot<VoucherId> {
         this.expiresAt = expiresAt;
         this.version = version;
         this.issuedAt = issuedAt;
+        this.buyerName = buyerName;
+        this.buyerPhone = buyerPhone;
 
         if (ledger != null) {
             this.ledger.addAll(ledger);
@@ -103,6 +113,8 @@ public class Voucher extends AggregateRoot<VoucherId> {
                 VoucherStatus.DRAFT,
                 expiresAt,
                 null,
+                null,
+                null,
                 Collections.emptyList()
         );
     }
@@ -119,7 +131,9 @@ public class Voucher extends AggregateRoot<VoucherId> {
             final Instant createdAt,
             final Instant updatedAt,
             final long version,
-            final Instant issuedAt
+            final Instant issuedAt,
+            final String buyerName,
+            final String buyerPhone
     ) {
         return new Voucher(
                 id,
@@ -133,11 +147,18 @@ public class Voucher extends AggregateRoot<VoucherId> {
                 createdAt,
                 updatedAt,
                 version,
-                issuedAt
+                issuedAt,
+                buyerName,
+                buyerPhone
         );
     }
 
-    public void issue(final long amountCents, final String idempotencyKey) {
+    public void issue(
+            final long amountCents,
+            final String idempotencyKey,
+            final String buyerName,
+            final String buyerPhone
+    ) {
         if (hasIssue()) {
             throw new IllegalStateException("Voucher already has an ISSUE entry");
         }
@@ -146,6 +167,8 @@ public class Voucher extends AggregateRoot<VoucherId> {
         this.ledger.add(entry);
         this.status = VoucherStatus.ACTIVE;
         this.issuedAt = InstantUtils.now();
+        this.buyerName = buyerName;
+        this.buyerPhone = buyerPhone;
         touch();
     }
 
@@ -222,6 +245,14 @@ public class Voucher extends AggregateRoot<VoucherId> {
 
     public String displayCode() {
     return displayCode;
+    }
+
+    public String buyerName() {
+        return buyerName;
+    }
+
+    public String buyerPhone() {
+        return buyerPhone;
     }
 
     public List<LedgerEntry> ledger() {

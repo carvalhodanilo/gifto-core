@@ -9,7 +9,9 @@ public record ListByTenantOutput(
         String status,
         long amountCents,
         Instant issuedAt,
-        Instant expiresAt
+        Instant expiresAt,
+        String buyerName,
+        String buyerPhone
 ) {
     public static ListByTenantOutput of(
             final String voucherId,
@@ -18,8 +20,20 @@ public record ListByTenantOutput(
             final String status,
             final long amountCents,
             final Instant issuedAt,
-            final Instant expiresAt
+            final Instant expiresAt,
+            final String buyerName,
+            final String buyerPhone
     ) {
-        return new ListByTenantOutput(voucherId, campaignId, campaignName, status, amountCents, issuedAt, expiresAt);
+        return new ListByTenantOutput(
+                voucherId,
+                campaignId,
+                campaignName,
+                status,
+                amountCents,
+                issuedAt,
+                expiresAt,
+                buyerName,
+                buyerPhone
+        );
     }
 }

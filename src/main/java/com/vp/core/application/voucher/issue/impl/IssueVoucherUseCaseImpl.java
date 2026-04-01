@@ -62,7 +62,9 @@ public class IssueVoucherUseCaseImpl extends IssueVoucherUseCase {
 
         voucher.issue(
                 command.amountCents(),
-                command.idempotencyKey()
+                command.idempotencyKey(),
+                command.buyerName(),
+                command.buyerPhone()
         );
         voucherGateway.create(voucher);
 

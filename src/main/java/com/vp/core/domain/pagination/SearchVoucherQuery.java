@@ -5,6 +5,8 @@ public record SearchVoucherQuery(
         int perPage,
         boolean active,
         String campaignName,
-        String displayCode
+        String displayCode,
+        String buyerName,
+        String buyerPhone
 ) {
 }

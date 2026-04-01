@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Positive;
 public record IssueVoucherRequest(
         @NotBlank String campaignId,
         @NotNull @Positive Long amountCents,
+        @NotBlank String buyerName,
+        @NotBlank String buyerPhone,
         String idempotencyKey //(via header)
 ) {
 }

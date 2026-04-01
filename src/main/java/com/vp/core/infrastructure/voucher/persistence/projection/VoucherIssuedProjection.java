@@ -20,4 +20,8 @@ public interface VoucherIssuedProjection {
     Instant getExpiresAt();
 
     long getAmountCents();
+
+    String getBuyerName();
+
+    String getBuyerPhone();
 }

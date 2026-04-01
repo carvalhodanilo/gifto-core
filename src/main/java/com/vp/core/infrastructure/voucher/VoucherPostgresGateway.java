@@ -88,6 +88,8 @@ public class VoucherPostgresGateway implements VoucherGateway {
                 searchQuery.campaignName(),
                 searchQuery.active() ? "ACTIVE" : null,
                 searchQuery.displayCode(),
+                searchQuery.buyerName(),
+                searchQuery.buyerPhone(),
                 PageRequest.of(searchQuery.page() , searchQuery.perPage())
         );
 

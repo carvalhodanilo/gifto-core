@@ -95,7 +95,9 @@ public class VoucherController {
                 tenantId,
                 body.campaignId(),
                 body.amountCents(),
-                idempotencyKey
+                idempotencyKey,
+                body.buyerName().trim(),
+                body.buyerPhone().trim()
         ));
 
         final var response = IssueVoucherResponse.of(
@@ -183,17 +185,26 @@ public class VoucherController {
             @RequestParam(name = "perPage", required = false, defaultValue = "10") final int perPage,
             @RequestParam(name = "active", required = false) final Boolean active,
             @RequestParam(name = "campaignName", required = false) final String campaignName,
-            @RequestParam(name = "displayCode", required = false) final String displayCode
+            @RequestParam(name = "displayCode", required = false) final String displayCode,
+            @RequestParam(name = "buyerName", required = false) final String buyerName,
+            @RequestParam(name = "buyerPhone", required = false) final String buyerPhone
     ) {
         final var tenantId = currentUserProvider.getCurrentTenantId();
         accessScopeService.ensureTenantAccess(tenantId);
+
+        final var buyerNameFilter =
+                buyerName != null && !buyerName.isBlank() ? buyerName.trim() : null;
+        final var buyerPhoneFilter =
+                buyerPhone != null && !buyerPhone.isBlank() ? buyerPhone.trim() : null;
 
         final var searchQuery = new SearchVoucherQuery(
                 page,
                 perPage,
                 active != null && active,
                 campaignName,
-                displayCode
+                displayCode,
+                buyerNameFilter,
+                buyerPhoneFilter
         );
         final var command = new ListByTenantCommand(tenantId, searchQuery);
         return ResponseEntity.ok(listByTenantUseCase.execute(command));
