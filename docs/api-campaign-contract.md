@@ -161,6 +161,15 @@ Lista apenas campanhas **ativas** do tenant.
 - **Path:** `/campaigns/{campaignId}/suspend`
 - **Segurança:** Role `tenant_admin`
 
+**Comportamento:** este endpoint **não encerra mais** a campanha. Responde **`422 Unprocessable Entity`** com `message` explicando que exclusão/encerramento não é permitido e que se deve usar **pausar** (`/pause`). Mantido por compatibilidade de clientes antigos; novos fluxos não devem chamá-lo.
+
+### Ativar — regras de período
+
+A ativação só é permitida quando o instante atual (UTC) está **dentro** do intervalo `[startsAt, endsAt]` da campanha (inclusive):
+
+- Antes de `startsAt` → **`422`** com mensagem sobre data de início.
+- Depois de `endsAt` → **`422`** com mensagem sobre data de término.
+
 ### Response – sucesso
 - **Status:** `200 OK`
 - **Body:** vazio
