@@ -15,7 +15,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Deve coincidir com o claim "iss" do JWT emitido pelo Keycloak (URL pública).
+          # Tem de ser EXATAMENTE o claim "iss" dos JWT (URL pública + /auth/realms/gifto).
+          # Se mudares o IP da VM, atualiza KEYCLOAK_ISSUER_URI e o front (VITE_*).
           issuer-uri: ${KEYCLOAK_ISSUER_URI:}
           # JWKS via rede Docker (evita hairpin NAT ao IP público da própria VM).
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/auth/realms/gifto/protocol/openid-connect/certs}
