@@ -46,6 +46,7 @@ public class GetMerchantUseCaseImpl extends GetMerchantUseCase {
                 merchant.getPhone1(),
                 merchant.getPhone2(),
                 merchant.getUrl() != null ? merchant.getUrl().getValue() : null,
+                merchant.getLandingLogoUrl(),
                 merchant.status().name(),
                 location,
                 activeNetworkIds,

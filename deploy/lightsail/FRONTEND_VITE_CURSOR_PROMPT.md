@@ -7,7 +7,7 @@ Copie o bloco "INSTRUÇÕES PARA O AGENTE" abaixo e cole em um novo chat do Curs
 ## Contexto fixo (não contradizer)
 
 - O backend Spring Boot já está no ar atrás de Nginx na AWS Lightsail.
-- Sem domínio neste momento: tudo roda em `http://3.239.44.109/`.
+- Sem domínio neste momento: tudo roda em `http://44.213.123.87/`.
 - Sem HTTPS neste MVP: tráfego HTTP puro. Depois vamos adicionar TLS (Nginx + Let’s Encrypt) e então revisitar configs.
 - Proxy (Nginx):
   - `/api/` -> backend Spring (Nginx remove o prefixo `/api` ao encaminhar; na API as rotas continuam como `/v1/...`, `/tenants`, etc.).
@@ -26,13 +26,13 @@ Você está no repositório de um app **React + Vite**. O backend já está depl
 
 | Uso | URL |
 |-----|-----|
-| API (via proxy) | `http://3.239.44.109/api` |
-| Keycloak (base) | `http://3.239.44.109/auth` |
-| Issuer OIDC | `http://3.239.44.109/auth/realms/gifto` |
+| API (via proxy) | `http://44.213.123.87/api` |
+| Keycloak (base) | `http://44.213.123.87/auth` |
+| Issuer OIDC | `http://44.213.123.87/auth/realms/gifto` |
 
 Exemplos:
-- Health da API: `GET http://3.239.44.109/api/actuator/health`
-- OpenID discovery: `GET http://3.239.44.109/auth/realms/gifto/.well-known/openid-configuration`
+- Health da API: `GET http://44.213.123.87/api/actuator/health`
+- OpenID discovery: `GET http://44.213.123.87/auth/realms/gifto/.well-known/openid-configuration`
 
 ### Variáveis de ambiente Vite (alinhadas ao seu snippet)
 
@@ -42,14 +42,14 @@ Exemplos:
 # Exemplo dev local:
 # VITE_APP_URL=http://localhost:5174
 # Exemplo dev acessando pelo IP na rede:
-# VITE_APP_URL=http://3.239.44.109:5174
+# VITE_APP_URL=http://44.213.123.87:5174
 VITE_APP_URL=http://localhost:5174
 
 # Obrigatorio: base HTTP publica da API (prefixo /api do Nginx)
-VITE_API_BASE_URL=http://3.239.44.109/api
+VITE_API_BASE_URL=http://44.213.123.87/api
 
 # Obrigatorio: base do Keycloak para o keycloak-js
-VITE_KEYCLOAK_URL=http://3.239.44.109/auth
+VITE_KEYCLOAK_URL=http://44.213.123.87/auth
 VITE_KEYCLOAK_REALM=gifto
 
 # Obrigatorio: client web (um por vez)
@@ -61,8 +61,8 @@ Em código, use somente `import.meta.env.VITE_*` (nunca secrets no front).
 
 ### Checklist rapido (informacoes que voce precisa reunir)
 
-1. IP publico da instancia e a porta/origem onde o front vai rodar (ex.: `http://3.239.44.109:5174`).
-2. URL publica exata da API que o browser chama (base com prefixo `/api`, ex.: `http://3.239.44.109/api`).
+1. IP publico da instancia e a porta/origem onde o front vai rodar (ex.: `http://44.213.123.87:5174`).
+2. URL publica exata da API que o browser chama (base com prefixo `/api`, ex.: `http://44.213.123.87/api`).
 3. Keycloak em PROD: `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID`.
 4. No Keycloak (client web): `Valid redirect URIs` e `Web origins` com a origem do front (IP + porta) e sem dominio.
 5. CORS: se o front rodar em outra origem (porta), alinhar backend para permitir aquela origem.
@@ -82,8 +82,8 @@ Seu snippet usa `keycloakConfig` com `appUrl: requiredEnv('VITE_APP_URL')`, enta
 
 No Admin Console do Keycloak, no client web (`voucher-platform-admin-web` ou `voucher-platform-sales-web`):
 
-1. `Valid redirect URIs`: incluir `VITE_APP_URL/*` (ex.: `http://3.239.44.109:5174/*`).
-2. `Web origins`: incluir somente `VITE_APP_URL` sem `/*` (ex.: `http://3.239.44.109:5174`).
+1. `Valid redirect URIs`: incluir `VITE_APP_URL/*` (ex.: `http://44.213.123.87:5174/*`).
+2. `Web origins`: incluir somente `VITE_APP_URL` sem `/*` (ex.: `http://44.213.123.87:5174`).
 
 Sem isso, o login OIDC falha com redirect invalido.
 

@@ -20,6 +20,8 @@ public class Tenant extends AggregateRoot<TenantId> {
     private String phone2;
     private Email email;
     private URL url;
+    /** URL pública (S3) do logo para header / landing. */
+    private String logoUrl;
 
     private Tenant(
             final TenantId id,
@@ -33,6 +35,7 @@ public class Tenant extends AggregateRoot<TenantId> {
             final String phone2,
             final Email email,
             final URL url,
+            final String logoUrl,
             final Instant createdAt,
             final Instant updatedAt
     ) {
@@ -48,6 +51,7 @@ public class Tenant extends AggregateRoot<TenantId> {
         this.phone2 = phone2;
         this.email = email;
         this.url = url;
+        this.logoUrl = logoUrl;
     }
 
     private Tenant(
@@ -61,7 +65,8 @@ public class Tenant extends AggregateRoot<TenantId> {
             final String phone1,
             final String phone2,
             final Email email,
-            final URL url
+            final URL url,
+            final String logoUrl
     ) {
         super(id);
 
@@ -75,6 +80,7 @@ public class Tenant extends AggregateRoot<TenantId> {
         this.phone2 = phone2;
         this.email = email;
         this.url = url;
+        this.logoUrl = logoUrl;
     }
 
     public static Tenant create(
@@ -97,8 +103,15 @@ public class Tenant extends AggregateRoot<TenantId> {
                 phone1,
                 null,
                 email,
-                url
+                url,
+                null
         );
+    }
+
+    public Tenant updateLogoUrl(final String logoUrl) {
+        this.logoUrl = logoUrl;
+        touch();
+        return this;
     }
 
     public Tenant updateProfile(
@@ -143,6 +156,7 @@ public class Tenant extends AggregateRoot<TenantId> {
             final String phone2,
             final Email email,
             final URL url,
+            final String logoUrl,
             final Instant createdAt,
             final Instant updatedAt
     ) {
@@ -158,6 +172,7 @@ public class Tenant extends AggregateRoot<TenantId> {
                 phone2,
                 email,
                 url,
+                logoUrl,
                 createdAt,
                 updatedAt
         );
@@ -201,6 +216,10 @@ public class Tenant extends AggregateRoot<TenantId> {
 
     public URL getUrl() {
         return url;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
     }
 
     public void suspend() {

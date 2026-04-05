@@ -5,6 +5,7 @@ public record ListTenantsPagedOutput(
         String name,
         String fantasyName,
         String document,
+        String logoUrl,
         String status
 ) {
     public static ListTenantsPagedOutput of(
@@ -12,9 +13,10 @@ public record ListTenantsPagedOutput(
             final String name,
             final String fantasyName,
             final String document,
+            final String logoUrl,
             final String status
     ) {
-        return new ListTenantsPagedOutput(id, name, fantasyName, document, status);
+        return new ListTenantsPagedOutput(id, name, fantasyName, document, logoUrl, status);
     }
 }
 

@@ -9,6 +9,7 @@ public record GetTenantOutput(
         String phone2,
         String email,
         String url,
+        String logoUrl,
         String status
 ) {
     public static GetTenantOutput of(
@@ -20,9 +21,10 @@ public record GetTenantOutput(
             final String phone2,
             final String email,
             final String url,
+            final String logoUrl,
             final String status
     ) {
-        return new GetTenantOutput(id, name, fantasyName, document, phone1, phone2, email, url, status);
+        return new GetTenantOutput(id, name, fantasyName, document, phone1, phone2, email, url, logoUrl, status);
     }
 }
 

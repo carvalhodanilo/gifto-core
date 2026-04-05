@@ -29,6 +29,7 @@ public interface MerchantJpaRepository
             select
                 m.id as id,
                 m.fantasyName as fantasyName,
+                m.landingLogoUrl as landingLogoUrl,
                 m.status as status
             from MerchantJpaEntity m
             where m.tenantId = :tenantId

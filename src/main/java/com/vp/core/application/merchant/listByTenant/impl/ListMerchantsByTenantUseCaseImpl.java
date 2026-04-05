@@ -24,6 +24,7 @@ public class ListMerchantsByTenantUseCaseImpl extends ListMerchantsByTenantUseCa
                 .map(p -> ListMerchantsByTenantOutput.of(
                         p.getId().toString(),
                         p.getFantasyName(),
+                        p.getLandingLogoUrl(),
                         p.getStatus()
                 ));
     }

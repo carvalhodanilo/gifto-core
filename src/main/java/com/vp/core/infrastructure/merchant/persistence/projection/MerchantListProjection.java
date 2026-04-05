@@ -8,5 +8,7 @@ public interface MerchantListProjection {
 
     String getFantasyName();
 
+    String getLandingLogoUrl();
+
     String getStatus();
 }

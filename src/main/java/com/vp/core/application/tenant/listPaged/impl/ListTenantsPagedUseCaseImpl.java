@@ -23,6 +23,7 @@ public class ListTenantsPagedUseCaseImpl extends ListTenantsPagedUseCase {
                         t.getName(),
                         t.getFantasyName(),
                         t.getDocumentValue(),
+                        t.getLogoUrl(),
                         t.getStatus()
                 ));
     }

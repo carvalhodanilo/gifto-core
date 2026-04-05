@@ -68,6 +68,9 @@ public class MerchantJpaEntity {
     @Column(name = "url", nullable = false)
     private String url;
 
+    @Column(name = "landing_logo_url")
+    private String landingLogoUrl;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -130,6 +133,7 @@ public class MerchantJpaEntity {
         e.phone2 = merchant.getPhone2();
         e.email = merchant.getEmail().getValue();
         e.url = merchant.getUrl().getValue();
+        e.landingLogoUrl = merchant.getLandingLogoUrl();
 
         e.createdAt = merchant.getCreatedAt();
         e.updatedAt = merchant.getUpdatedAt();
@@ -185,6 +189,7 @@ public class MerchantJpaEntity {
         this.phone2 = merchant.getPhone2();
         this.email = merchant.getEmail().getValue();
         this.url = merchant.getUrl().getValue();
+        this.landingLogoUrl = merchant.getLandingLogoUrl();
         this.updatedAt = merchant.getUpdatedAt();
     }
 
@@ -237,6 +242,7 @@ public class MerchantJpaEntity {
                 phone2,
                 Email.with(email),
                 URL.with(url),
+                landingLogoUrl,
                 createdAt,
                 updatedAt,
                 toDomainNetworkLinks(networkLinks)

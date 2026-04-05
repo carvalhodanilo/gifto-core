@@ -13,6 +13,8 @@ import com.vp.core.application.tenant.listPaged.ListTenantsPagedUseCase;
 import com.vp.core.application.tenant.update.UpdateTenantCommand;
 import com.vp.core.application.tenant.update.UpdateTenantOutput;
 import com.vp.core.application.tenant.update.UpdateTenantUseCase;
+import com.vp.core.application.tenant.uploadLogo.UploadTenantLogoCommand;
+import com.vp.core.application.tenant.uploadLogo.UploadTenantLogoUseCase;
 import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantOutput;
 import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantUseCase;
 import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantCommand;
@@ -22,13 +24,17 @@ import com.vp.core.domain.pagination.SearchTenantQuery;
 import com.vp.core.domain.valueObjects.URL;
 import com.vp.core.infrastructure.api.request.CreateTenantRequest;
 import com.vp.core.infrastructure.api.request.UpdateTenantRequest;
+import com.vp.core.infrastructure.api.response.AssetUrlResponse;
 import com.vp.core.infrastructure.api.response.CreateTenantResponse;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 
+import java.io.IOException;
 import java.net.URI;
 
 @RestController
@@ -41,6 +47,7 @@ public class TenantController {
     private final GetTenantUseCase getTenantUseCase;
     private final UpdateTenantUseCase updateTenantUseCase;
     private final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase;
+    private final UploadTenantLogoUseCase uploadTenantLogoUseCase;
 
     public TenantController(
             final CreateTenantUseCase createTenantUseCase,
@@ -48,7 +55,8 @@ public class TenantController {
             final ListTenantsPagedUseCase listTenantsPagedUseCase,
             final GetTenantUseCase getTenantUseCase,
             final UpdateTenantUseCase updateTenantUseCase,
-            final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase
+            final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase,
+            final UploadTenantLogoUseCase uploadTenantLogoUseCase
     ) {
         this.createTenantUseCase = createTenantUseCase;
         this.getAllTenantsUseCase = getAllTenantsUseCase;
@@ -56,6 +64,7 @@ public class TenantController {
         this.getTenantUseCase = getTenantUseCase;
         this.updateTenantUseCase = updateTenantUseCase;
         this.listMerchantsByTenantUseCase = listMerchantsByTenantUseCase;
+        this.uploadTenantLogoUseCase = uploadTenantLogoUseCase;
     }
 
     @PostMapping
@@ -101,6 +110,27 @@ public class TenantController {
     @PreAuthorize("hasRole('system_admin')")
     public ResponseEntity<GetTenantOutput> getById(@PathVariable String tenantId) {
         return ResponseEntity.ok(getTenantUseCase.execute(tenantId));
+    }
+
+    @PostMapping(value = "/{tenantId}/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<AssetUrlResponse> uploadLogo(
+            @PathVariable String tenantId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Arquivo é obrigatório.");
+        }
+        final byte[] content;
+        try {
+            content = file.getBytes();
+        } catch (final IOException e) {
+            throw new IllegalArgumentException("Não foi possível ler o arquivo enviado.");
+        }
+        final var contentType = file.getContentType() != null ? file.getContentType() : "";
+        final var out = uploadTenantLogoUseCase.execute(new UploadTenantLogoCommand(tenantId, content, contentType));
+        return ResponseEntity.ok(AssetUrlResponse.of(out.url()));
     }
 
     @PatchMapping("/{tenantId}")

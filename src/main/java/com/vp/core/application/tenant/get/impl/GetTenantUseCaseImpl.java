@@ -32,6 +32,7 @@ public class GetTenantUseCaseImpl extends GetTenantUseCase {
                 tenant.getPhone2(),
                 tenant.getEmail().getValue(),
                 tenant.getUrl().getValue(),
+                tenant.getLogoUrl(),
                 tenant.getStatus().name()
         );
     }

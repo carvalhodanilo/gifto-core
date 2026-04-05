@@ -56,6 +56,9 @@ public class TenantJpaEntity {
     @Column(name = "url", nullable = false)
     private String url;
 
+    @Column(name = "logo_url")
+    private String logoUrl;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -113,6 +116,7 @@ public class TenantJpaEntity {
         e.phone2 = tenant.getPhone2();
         e.email = tenant.getEmail().getValue();
         e.url = tenant.getUrl().getValue();
+        e.logoUrl = tenant.getLogoUrl();
 
         e.createdAt = tenant.getCreatedAt();
         e.updatedAt = tenant.getUpdatedAt();
@@ -168,6 +172,7 @@ public class TenantJpaEntity {
                 phone2,
                 Email.with(email),
                 URL.with(url),
+                logoUrl,
                 createdAt,
                 updatedAt
         );

@@ -29,6 +29,8 @@ public class Campaign extends AggregateRoot<CampaignId> {
     private Instant startsAt;
     private Instant endsAt;
     private CampaignStatus status;
+    /** URL pública do banner na landing. */
+    private String bannerUrl;
 
     private long version;
 
@@ -40,7 +42,8 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final int expirationDays,
             final Instant startsAt,
             final Instant endsAt,
-            final CampaignStatus status
+            final CampaignStatus status,
+            final String bannerUrl
     ) {
         super(id);
 
@@ -51,6 +54,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
         this.startsAt = startsAt;
         this.endsAt = endsAt;
         this.status = status;
+        this.bannerUrl = bannerUrl;
     }
 
     private Campaign(
@@ -62,6 +66,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final Instant startsAt,
             final Instant endsAt,
             final CampaignStatus status,
+            final String bannerUrl,
             final Instant createdAt,
             final Instant updatedAt,
             final long version
@@ -75,6 +80,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
         this.startsAt = startsAt;
         this.endsAt = endsAt;
         this.status = status;
+        this.bannerUrl = bannerUrl;
         this.version = version;
     }
 
@@ -95,7 +101,8 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 expirationDays,
                 startsAt,
                 endsAt,
-                CampaignStatus.DRAFT
+                CampaignStatus.DRAFT,
+                null
         );
     }
 
@@ -112,8 +119,15 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 60,
                 InstantUtils.now(),
                 InstantUtils.now().plus(10000, ChronoUnit.DAYS),
-                CampaignStatus.DRAFT
+                CampaignStatus.DRAFT,
+                null
         );
+    }
+
+    public Campaign updateBannerUrl(final String bannerUrl) {
+        this.bannerUrl = bannerUrl;
+        touch();
+        return this;
     }
 
     public Campaign update(
@@ -157,6 +171,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final Instant startsAt,
             final Instant endsAt,
             final CampaignStatus status,
+            final String bannerUrl,
             final Instant createdAt,
             final Instant updatedAt,
             final long version
@@ -170,6 +185,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 startsAt,
                 endsAt,
                 status,
+                bannerUrl,
                 createdAt,
                 updatedAt,
                 version
@@ -202,6 +218,10 @@ public class Campaign extends AggregateRoot<CampaignId> {
 
     public CampaignStatus status() {
         return status;
+    }
+
+    public String bannerUrl() {
+        return bannerUrl;
     }
 
     public void ensureActive() {

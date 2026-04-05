@@ -50,6 +50,9 @@ public class CampaignJpaEntity {
     @Column(name = "status", nullable = false)
     private String status;
 
+    @Column(name = "banner_url")
+    private String bannerUrl;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -74,6 +77,7 @@ public class CampaignJpaEntity {
         e.startsAt = campaign.startsAt();
         e.endsAt = campaign.endsAt();
         e.status = campaign.status().name();
+        e.bannerUrl = campaign.bannerUrl();
 
         e.createdAt = campaign.getCreatedAt();
         e.updatedAt = campaign.getUpdatedAt();
@@ -93,6 +97,7 @@ public class CampaignJpaEntity {
                 startsAt,
                 endsAt,
                 CampaignStatus.valueOf(status),
+                bannerUrl,
                 createdAt,
                 updatedAt,
                 version

@@ -21,6 +21,13 @@ spring:
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/auth/realms/gifto/protocol/openid-connect/certs}
 
 app:
+  storage:
+    s3:
+      bucket: ${APP_STORAGE_S3_BUCKET:}
+      region: ${APP_STORAGE_S3_REGION:us-east-1}
+      public-base-url: ${APP_STORAGE_S3_PUBLIC_BASE_URL:}
+      access-key-id: ${AWS_ACCESS_KEY_ID:}
+      secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
   security:
     keycloak:
       issuer-uri: ${KEYCLOAK_ISSUER_URI:}

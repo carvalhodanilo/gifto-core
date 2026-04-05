@@ -25,6 +25,7 @@ public interface TenantJpaRepository extends JpaRepository<TenantJpaEntity, UUID
                 t.name as name,
                 t.fantasyName as fantasyName,
                 t.documentValue as documentValue,
+                t.logoUrl as logoUrl,
                 t.status as status
             from TenantJpaEntity t
             where (:name is null or :name = '' or lower(t.name) like lower(concat('%', :name, '%'))

@@ -19,12 +19,14 @@ public record GetAllTenantsOutput(
 
     record TenantOutput(
             String id,
-            String fantasyName
+            String fantasyName,
+            String logoUrl
     ) {
         public static TenantOutput of(final Tenant tenant) {
             return new TenantOutput(
                     tenant.getId().getValue(),
-                    tenant.getFantasyName()
+                    tenant.getFantasyName(),
+                    tenant.getLogoUrl()
             );
         }
     }

@@ -39,6 +39,8 @@ public class Merchant extends AggregateRoot<MerchantId> {
     private String phone2;
     private Email email;
     private URL url;
+    /** URL pública do logo para lista na landing. */
+    private String landingLogoUrl;
 
     private final Map<NetworkId, MerchantNetworkLink> networkLinks = new HashMap<>();
 
@@ -55,6 +57,7 @@ public class Merchant extends AggregateRoot<MerchantId> {
             final String phone2,
             final Email email,
             final URL url,
+            final String landingLogoUrl,
             final Instant createdAt,
             final Instant updatedAt,
             final Map<NetworkId, MerchantNetworkLink> networkLinks
@@ -72,6 +75,7 @@ public class Merchant extends AggregateRoot<MerchantId> {
         this.phone2 = phone2;
         this.email = email;
         this.url = url;
+        this.landingLogoUrl = landingLogoUrl;
         this.networkLinks.putAll(networkLinks);
     }
 
@@ -87,7 +91,8 @@ public class Merchant extends AggregateRoot<MerchantId> {
             final String phone1,
             final String phone2,
             final Email email,
-            final URL url
+            final URL url,
+            final String landingLogoUrl
     ) {
         super(id);
         this.tenantId = tenantId;
@@ -101,6 +106,7 @@ public class Merchant extends AggregateRoot<MerchantId> {
         this.phone2 = phone2;
         this.email = email;
         this.url = url;
+        this.landingLogoUrl = landingLogoUrl;
     }
 
     public static Merchant create(
@@ -128,7 +134,8 @@ public class Merchant extends AggregateRoot<MerchantId> {
                 phone1,
                 phone2,
                 email,
-                url
+                url,
+                null
         );
     }
 
@@ -145,6 +152,7 @@ public class Merchant extends AggregateRoot<MerchantId> {
             final String phone2,
             final Email email,
             final URL url,
+            final String landingLogoUrl,
             final Instant createdAt,
             final Instant updatedAt,
             final Map<NetworkId, MerchantNetworkLink> networkLinks
@@ -162,10 +170,17 @@ public class Merchant extends AggregateRoot<MerchantId> {
                 phone2,
                 email,
                 url,
+                landingLogoUrl,
                 createdAt,
                 updatedAt,
                 networkLinks
         );
+    }
+
+    public Merchant updateLandingLogoUrl(final String landingLogoUrl) {
+        this.landingLogoUrl = landingLogoUrl;
+        touch();
+        return this;
     }
 
     public Merchant updateProfile(
@@ -320,6 +335,10 @@ public class Merchant extends AggregateRoot<MerchantId> {
 
     public URL getUrl() {
         return url;
+    }
+
+    public String getLandingLogoUrl() {
+        return landingLogoUrl;
     }
 
     public Map<NetworkId, MerchantNetworkLink> getNetworkLinks() {

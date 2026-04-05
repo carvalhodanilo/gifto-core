@@ -17,14 +17,21 @@ import com.vp.core.application.campaign.suspend.SuspendCampaignCommand;
 import com.vp.core.application.campaign.suspend.SuspendCampaignUseCase;
 import com.vp.core.application.campaign.update.UpdateCampaignCommand;
 import com.vp.core.application.campaign.update.UpdateCampaignUseCase;
+import com.vp.core.application.campaign.uploadBanner.UploadCampaignBannerCommand;
+import com.vp.core.application.campaign.uploadBanner.UploadCampaignBannerUseCase;
 import com.vp.core.application.security.AccessScopeService;
 import com.vp.core.application.security.CurrentUserProvider;
 import com.vp.core.infrastructure.api.request.CreateCampaignRequest;
 import com.vp.core.infrastructure.api.request.UpdateCampaignRequest;
+import com.vp.core.infrastructure.api.response.AssetUrlResponse;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/campaigns")
@@ -37,6 +44,7 @@ public class CampaignController {
     private final PauseCampaignUseCase pauseCampaignUseCase;
     private final SuspendCampaignUseCase suspendCampaignUseCase;
     private final UpdateCampaignUseCase updateCampaignUseCase;
+    private final UploadCampaignBannerUseCase uploadCampaignBannerUseCase;
     private final CurrentUserProvider currentUserProvider;
     private final AccessScopeService accessScopeService;
 
@@ -48,6 +56,7 @@ public class CampaignController {
             final PauseCampaignUseCase pauseCampaignUseCase,
             final SuspendCampaignUseCase suspendCampaignUseCase,
             final UpdateCampaignUseCase updateCampaignUseCase,
+            final UploadCampaignBannerUseCase uploadCampaignBannerUseCase,
             final CurrentUserProvider currentUserProvider,
             final AccessScopeService accessScopeService
     ) {
@@ -58,6 +67,7 @@ public class CampaignController {
         this.pauseCampaignUseCase = pauseCampaignUseCase;
         this.suspendCampaignUseCase = suspendCampaignUseCase;
         this.updateCampaignUseCase = updateCampaignUseCase;
+        this.uploadCampaignBannerUseCase = uploadCampaignBannerUseCase;
         this.currentUserProvider = currentUserProvider;
         this.accessScopeService = accessScopeService;
     }
@@ -132,6 +142,31 @@ public class CampaignController {
 
         updateCampaignUseCase.execute(command);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "/{campaignId}/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //[tenant_admin]
+    @PreAuthorize("hasRole('tenant_admin')")
+    public ResponseEntity<AssetUrlResponse> uploadBanner(
+            @PathVariable String campaignId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        final var tenantId = currentUserProvider.getCurrentTenantId();
+        accessScopeService.ensureTenantAccess(tenantId);
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Arquivo é obrigatório.");
+        }
+        final byte[] content;
+        try {
+            content = file.getBytes();
+        } catch (final IOException e) {
+            throw new IllegalArgumentException("Não foi possível ler o arquivo enviado.");
+        }
+        final var contentType = file.getContentType() != null ? file.getContentType() : "";
+        final var out = uploadCampaignBannerUseCase.execute(
+                new UploadCampaignBannerCommand(tenantId, campaignId, content, contentType));
+        return ResponseEntity.ok(AssetUrlResponse.of(out.url()));
     }
 
     @PatchMapping("/{campaignId}/activate")

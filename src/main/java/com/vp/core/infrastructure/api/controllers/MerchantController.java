@@ -28,16 +28,22 @@ import com.vp.core.domain.pagination.SearchMerchantQuery;
 import com.vp.core.application.merchant.update.UpdateMerchantCommand;
 import com.vp.core.application.merchant.update.UpdateMerchantOutput;
 import com.vp.core.application.merchant.update.UpdateMerchantUseCase;
+import com.vp.core.application.merchant.uploadLandingLogo.UploadMerchantLandingLogoCommand;
+import com.vp.core.application.merchant.uploadLandingLogo.UploadMerchantLandingLogoUseCase;
 import com.vp.core.domain.valueObjects.PixKey;
 import com.vp.core.domain.valueObjects.URL;
 import com.vp.core.infrastructure.api.request.CreateMerchantRequest;
 import com.vp.core.infrastructure.api.request.UpdateMerchantBankAccountRequest;
 import com.vp.core.infrastructure.api.request.UpdateMerchantRequest;
+import com.vp.core.infrastructure.api.response.AssetUrlResponse;
 import com.vp.core.infrastructure.api.response.CreateMerchantResponse;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.URI;
 
 @RestController
@@ -53,6 +59,7 @@ public class MerchantController {
     private final UpdateMerchantBankAccountUseCase updateMerchantBankAccountUseCase;
     private final ActivateMerchantUseCase activateMerchantUseCase;
     private final SuspendMerchantUseCase suspendMerchantUseCase;
+    private final UploadMerchantLandingLogoUseCase uploadMerchantLandingLogoUseCase;
     private final CurrentUserProvider currentUserProvider;
     private final AccessScopeService accessScopeService;
 
@@ -66,6 +73,7 @@ public class MerchantController {
             final UpdateMerchantBankAccountUseCase updateMerchantBankAccountUseCase,
             final ActivateMerchantUseCase activateMerchantUseCase,
             final SuspendMerchantUseCase suspendMerchantUseCase,
+            final UploadMerchantLandingLogoUseCase uploadMerchantLandingLogoUseCase,
             final CurrentUserProvider currentUserProvider,
             final AccessScopeService accessScopeService
     ) {
@@ -78,6 +86,7 @@ public class MerchantController {
         this.updateMerchantBankAccountUseCase = updateMerchantBankAccountUseCase;
         this.activateMerchantUseCase = activateMerchantUseCase;
         this.suspendMerchantUseCase = suspendMerchantUseCase;
+        this.uploadMerchantLandingLogoUseCase = uploadMerchantLandingLogoUseCase;
         this.currentUserProvider = currentUserProvider;
         this.accessScopeService = accessScopeService;
     }
@@ -179,6 +188,31 @@ public class MerchantController {
                 loc != null ? loc.postalCode() : null
         );
         return ResponseEntity.ok(updateMerchantUseCase.execute(command));
+    }
+
+    @PostMapping(value = "/{merchantId}/landing-logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // [tenant_admin]
+    @PreAuthorize("hasRole('tenant_admin')")
+    public ResponseEntity<AssetUrlResponse> uploadLandingLogo(
+            @PathVariable String merchantId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        accessScopeService.ensureMerchantAccess(merchantId);
+        final var tenantId = currentUserProvider.getCurrentTenantId();
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Arquivo é obrigatório.");
+        }
+        final byte[] content;
+        try {
+            content = file.getBytes();
+        } catch (final IOException e) {
+            throw new IllegalArgumentException("Não foi possível ler o arquivo enviado.");
+        }
+        final var contentType = file.getContentType() != null ? file.getContentType() : "";
+        final var out = uploadMerchantLandingLogoUseCase.execute(
+                new UploadMerchantLandingLogoCommand(tenantId, merchantId, content, contentType));
+        return ResponseEntity.ok(AssetUrlResponse.of(out.url()));
     }
 
     @GetMapping("/{merchantId}")

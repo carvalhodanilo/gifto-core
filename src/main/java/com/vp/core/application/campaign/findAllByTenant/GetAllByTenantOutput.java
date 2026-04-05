@@ -25,6 +25,7 @@ public record GetAllByTenantOutput(
             int expirationDays,
             Instant startsAt,
             Instant endsAt,
+            String bannerUrl,
             CampaignStatus status
     ) {
         public static GetCampaignOutput of(final Campaign campaign) {
@@ -34,6 +35,7 @@ public record GetAllByTenantOutput(
                     campaign.expirationDays(),
                     campaign.startsAt(),
                     campaign.endsAt(),
+                    campaign.bannerUrl(),
                     campaign.status()
             );
         }

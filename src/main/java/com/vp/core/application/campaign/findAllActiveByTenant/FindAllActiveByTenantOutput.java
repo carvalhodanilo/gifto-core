@@ -19,12 +19,14 @@ public record FindAllActiveByTenantOutput(
 
     record CampaignOutput(
             String id,
-            String campaignName
+            String campaignName,
+            String bannerUrl
     ) {
         public static CampaignOutput of(final Campaign campaign) {
             return new CampaignOutput(
                     campaign.getId().getValue(),
-                    campaign.name()
+                    campaign.name(),
+                    campaign.bannerUrl()
             );
         }
     }

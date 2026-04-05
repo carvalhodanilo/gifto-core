@@ -10,6 +10,8 @@ public interface TenantListProjection {
 
     String getDocumentValue();
 
+    String getLogoUrl();
+
     String getStatus();
 }
 
