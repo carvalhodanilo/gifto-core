@@ -3,8 +3,8 @@ package com.vp.core.infrastructure.config.storage;
 import com.vp.core.domain.storage.ObjectStorageGateway;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -17,10 +17,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class S3StorageConfiguration {
 
     @Bean
-    @ConditionalOnProperty(prefix = "app.storage.s3", name = "bucket")
+    @Conditional(S3BucketConfiguredCondition.class)
     public S3Client s3Client(final S3StorageProperties props) {
         if (!StringUtils.hasText(props.bucket())) {
-            throw new IllegalStateException("app.storage.s3.bucket must not be blank when set");
+            throw new IllegalStateException("app.storage.s3.bucket must not be blank when S3 is enabled");
         }
         final var builder = S3Client.builder().region(Region.of(props.region()));
         if (StringUtils.hasText(props.accessKeyId()) && StringUtils.hasText(props.secretAccessKey())) {

@@ -95,6 +95,11 @@ Saia e entre de novo na sessão SSH para o grupo `docker` valer.
 
 O compose define `SPRING_PROFILES_ACTIVE=lightsail` no container do backend.
 
+### Upload de imagens (S3 / Lightsail Object Storage)
+
+- **Opcional para o arranque:** se `APP_STORAGE_S3_BUCKET` (ou `AWS_S3_BUCKET`, usado como fallback no compose) estiver vazio, o backend **sobe na mesma**; os endpoints de upload respondem com erro até configurares o bucket.
+- O serviço `backend` no `docker-compose.yml` repassa: `APP_STORAGE_S3_BUCKET`, `APP_STORAGE_S3_REGION`, `APP_STORAGE_S3_PUBLIC_BASE_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`.
+
 ## Verificação rápida
 
 ```bash

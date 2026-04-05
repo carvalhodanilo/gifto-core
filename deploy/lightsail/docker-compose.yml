@@ -36,6 +36,12 @@ services:
       KEYCLOAK_JWK_SET_URI: ${KEYCLOAK_JWK_SET_URI:-http://keycloak:8080/auth/realms/gifto/protocol/openid-connect/certs}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-voucher-platform-api}
       VOUCHER_TOKEN_SECRET: ${VOUCHER_TOKEN_SECRET}
+      # S3 / Lightsail Object Storage (upload de logos/banners). Opcional: sem bucket o backend sobe e uploads falham com mensagem clara.
+      APP_STORAGE_S3_BUCKET: ${APP_STORAGE_S3_BUCKET:-${AWS_S3_BUCKET:-}}
+      APP_STORAGE_S3_REGION: ${APP_STORAGE_S3_REGION:-${AWS_REGION:-us-east-1}}
+      APP_STORAGE_S3_PUBLIC_BASE_URL: ${APP_STORAGE_S3_PUBLIC_BASE_URL:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
