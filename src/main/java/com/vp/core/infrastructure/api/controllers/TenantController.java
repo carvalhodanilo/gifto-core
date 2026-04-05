@@ -15,14 +15,22 @@ import com.vp.core.application.tenant.update.UpdateTenantOutput;
 import com.vp.core.application.tenant.update.UpdateTenantUseCase;
 import com.vp.core.application.tenant.uploadLogo.UploadTenantLogoCommand;
 import com.vp.core.application.tenant.uploadLogo.UploadTenantLogoUseCase;
+import com.vp.core.application.tenant.getBankAccount.GetTenantBankAccountCommand;
+import com.vp.core.application.tenant.getBankAccount.GetTenantBankAccountOutput;
+import com.vp.core.application.tenant.getBankAccount.GetTenantBankAccountUseCase;
+import com.vp.core.application.tenant.updateBankAccount.UpdateTenantBankAccountCommand;
+import com.vp.core.application.tenant.updateBankAccount.UpdateTenantBankAccountOutput;
+import com.vp.core.application.tenant.updateBankAccount.UpdateTenantBankAccountUseCase;
 import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantOutput;
 import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantUseCase;
 import com.vp.core.application.merchant.listByTenant.ListMerchantsByTenantCommand;
 import com.vp.core.domain.pagination.Pagination;
 import com.vp.core.domain.pagination.SearchMerchantQuery;
 import com.vp.core.domain.pagination.SearchTenantQuery;
+import com.vp.core.domain.valueObjects.PixKey;
 import com.vp.core.domain.valueObjects.URL;
 import com.vp.core.infrastructure.api.request.CreateTenantRequest;
+import com.vp.core.infrastructure.api.request.UpdateTenantBankAccountRequest;
 import com.vp.core.infrastructure.api.request.UpdateTenantRequest;
 import com.vp.core.infrastructure.api.response.AssetUrlResponse;
 import com.vp.core.infrastructure.api.response.CreateTenantResponse;
@@ -48,6 +56,8 @@ public class TenantController {
     private final UpdateTenantUseCase updateTenantUseCase;
     private final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase;
     private final UploadTenantLogoUseCase uploadTenantLogoUseCase;
+    private final GetTenantBankAccountUseCase getTenantBankAccountUseCase;
+    private final UpdateTenantBankAccountUseCase updateTenantBankAccountUseCase;
 
     public TenantController(
             final CreateTenantUseCase createTenantUseCase,
@@ -56,7 +66,9 @@ public class TenantController {
             final GetTenantUseCase getTenantUseCase,
             final UpdateTenantUseCase updateTenantUseCase,
             final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase,
-            final UploadTenantLogoUseCase uploadTenantLogoUseCase
+            final UploadTenantLogoUseCase uploadTenantLogoUseCase,
+            final GetTenantBankAccountUseCase getTenantBankAccountUseCase,
+            final UpdateTenantBankAccountUseCase updateTenantBankAccountUseCase
     ) {
         this.createTenantUseCase = createTenantUseCase;
         this.getAllTenantsUseCase = getAllTenantsUseCase;
@@ -65,6 +77,8 @@ public class TenantController {
         this.updateTenantUseCase = updateTenantUseCase;
         this.listMerchantsByTenantUseCase = listMerchantsByTenantUseCase;
         this.uploadTenantLogoUseCase = uploadTenantLogoUseCase;
+        this.getTenantBankAccountUseCase = getTenantBankAccountUseCase;
+        this.updateTenantBankAccountUseCase = updateTenantBankAccountUseCase;
     }
 
     @PostMapping
@@ -150,6 +164,42 @@ public class TenantController {
                 URL.with(body.url())
         ));
         return ResponseEntity.ok(out);
+    }
+
+    @GetMapping("/{tenantId}/bank-account")
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<GetTenantBankAccountOutput> getBankAccount(@PathVariable String tenantId) {
+        final var command = new GetTenantBankAccountCommand(tenantId);
+        return getTenantBankAccountUseCase.execute(command)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @PutMapping("/{tenantId}/bank-account")
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<UpdateTenantBankAccountOutput> updateBankAccount(
+            @PathVariable String tenantId,
+            @RequestBody final UpdateTenantBankAccountRequest body
+    ) {
+        final var pixKeyType = body.pixKeyType() != null && !body.pixKeyType().isBlank()
+                ? PixKey.PixKeyType.valueOf(body.pixKeyType())
+                : null;
+        final var command = new UpdateTenantBankAccountCommand(
+                tenantId,
+                body.bankCode(),
+                body.bankName(),
+                body.branch(),
+                body.accountNumber(),
+                body.accountDigit(),
+                body.accountType(),
+                body.holderName(),
+                body.holderDocument(),
+                pixKeyType,
+                body.pixKeyValue()
+        );
+        return ResponseEntity.ok(updateTenantBankAccountUseCase.execute(command));
     }
 
     @GetMapping("/{tenantId}/merchants")
