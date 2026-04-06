@@ -75,7 +75,7 @@ public class KeycloakUserProvisioner {
         final String roleName = scope.isTenant() ? "tenant_admin" : "merchant_admin";
 
         try (Keycloak keycloak = buildKeycloak()) {
-            final RealmResource realm = keycloak.realm(props.realm());
+            final RealmResource realm = keycloak.realm(effectiveRealm());
 
             final var representation = new UserRepresentation();
             representation.setUsername(user.getEmail().getValue());
@@ -156,7 +156,7 @@ public class KeycloakUserProvisioner {
             return;
         }
         try (Keycloak keycloak = buildKeycloak()) {
-            final RealmResource realm = keycloak.realm(props.realm());
+            final RealmResource realm = keycloak.realm(effectiveRealm());
             try {
                 realm.users().delete(keycloakUserId);
             } catch (final jakarta.ws.rs.NotFoundException e) {
@@ -190,8 +190,8 @@ public class KeycloakUserProvisioner {
     private Keycloak buildKeycloak() {
         return KeycloakBuilder.builder()
                 .serverUrl(trimTrailingSlash(props.serverUrl()))
-                .realm(props.realm())
-                .clientId(props.clientId())
+                .realm(effectiveRealm())
+                .clientId(effectiveAdminClientId())
                 .clientSecret(props.clientSecret())
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .build();
@@ -205,15 +205,67 @@ public class KeycloakUserProvisioner {
     }
 
     private void assignClientRole(final RealmResource realm, final String kcUserId, final String roleName) {
-        final var clients = realm.clients().findByClientId(props.rolesClientId());
-        if (clients == null || clients.isEmpty()) {
-            throw DomainException.with(new DomainError(rolesClientMissingHint(props.rolesClientId(), roleName)));
-        }
-        final String internalClientId = clients.getFirst().getId();
+        final String desiredClientId = effectiveRolesClientId();
+        final String internalClientId = resolveInternalClientUuid(realm, desiredClientId, roleName);
         final RoleRepresentation role = realm.clients().get(internalClientId).roles().get(roleName).toRepresentation();
         final var roleList = new ArrayList<RoleRepresentation>();
         roleList.add(role);
         realm.users().get(kcUserId).roles().clientLevel(internalClientId).add(roleList);
+    }
+
+    /** Realm onde correm users/clients (não confundir com o token do master). String vazia no .env quebra o default do Spring. */
+    private String effectiveRealm() {
+        final String r = props.realm();
+        if (r == null || r.isBlank()) {
+            log.warn("KEYCLOAK_ADMIN_REALM / app.keycloak.admin.realm vazio — a usar 'gifto'.");
+            return "gifto";
+        }
+        return r.trim();
+    }
+
+    private String effectiveAdminClientId() {
+        final String id = props.clientId();
+        if (id == null || id.isBlank()) {
+            return "gifto-core-admin";
+        }
+        return id.trim();
+    }
+
+    private String effectiveRolesClientId() {
+        final String id = props.rolesClientId();
+        if (id == null || id.isBlank()) {
+            return "voucher-platform-api";
+        }
+        return id.trim();
+    }
+
+    private String resolveInternalClientUuid(
+            final RealmResource realm,
+            final String desiredClientId,
+            final String roleNameForHint
+    ) {
+        var found = realm.clients().findByClientId(desiredClientId);
+        if (found != null && !found.isEmpty()) {
+            return found.getFirst().getId();
+        }
+        int first = 0;
+        final int max = 100;
+        while (true) {
+            final var page = realm.clients().findAll(null, Boolean.FALSE, null, first, max);
+            if (page == null || page.isEmpty()) {
+                break;
+            }
+            for (final var c : page) {
+                if (desiredClientId.equals(c.getClientId())) {
+                    return c.getId();
+                }
+            }
+            if (page.size() < max) {
+                break;
+            }
+            first += max;
+        }
+        throw DomainException.with(new DomainError(rolesClientMissingHint(desiredClientId, roleNameForHint, effectiveRealm())));
     }
 
     private static void applyNameParts(final String fullName, final UserRepresentation representation) {
@@ -279,14 +331,17 @@ public class KeycloakUserProvisioner {
     private static String keycloakAdminForbiddenHint() {
         return "Keycloak Admin API devolveu 403 (sem permissão). O separador \"Roles\" do client só define papéis desse client — não autoriza o backend. "
                 + "Vai a Clients → gifto-core-admin → Service accounts roles → Assign role → "
-                + "Filter by clients → realm-management e adiciona pelo menos manage-users (e view-users, query-users). "
+                + "Filter by clients → realm-management e adiciona manage-users, view-users, query-users, view-clients e query-clients "
+                + "(sem view-clients/query-clients a listagem de clients pode falhar). "
                 + "Em Capability config o client precisa de \"Service accounts roles\" ativo.";
     }
 
-    private static String rolesClientMissingHint(final String rolesClientId, final String roleName) {
-        return "No realm não existe o client \"" + rolesClientId + "\" (variável KEYCLOAK_ADMIN_ROLES_CLIENT_ID / app.keycloak.admin.roles-client-id). "
-                + "Isto não é o gifto-core-admin: o backend autentica com gifto-core-admin, mas as roles da app (ex. " + roleName + ") "
-                + "vivem no client da API (por defeito voucher-platform-api), como no realm importado em infra/keycloak/realm/realm-gifto.json. "
-                + "Importa o realm completo ou cria esse client com as client roles tenant_admin, merchant_admin, etc.";
+    private static String rolesClientMissingHint(final String rolesClientId, final String roleName, final String realmUsed) {
+        return "Não foi possível resolver o client \"" + rolesClientId + "\" no realm \"" + realmUsed + "\" "
+                + "(KEYCLOAK_ADMIN_ROLES_CLIENT_ID / KEYCLOAK_ADMIN_REALM). "
+                + "Se vês o client no Admin Console mas o backend falha: confirma o realm no canto superior esquerdo (tem de ser o mesmo) "
+                + "e não deixes KEYCLOAK_ADMIN_REALM vazio no .env (o Spring aceita string vazia e ignorava o default). "
+                + "No service account do gifto-core-admin adiciona em realm-management: view-clients e query-clients. "
+                + "As roles da app (ex. " + roleName + ") vivem no client voucher-platform-api.";
     }
 }

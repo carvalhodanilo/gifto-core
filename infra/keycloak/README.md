@@ -62,7 +62,7 @@ Faz o seguinte no Admin Console (realm **gifto**):
 1. **Clients** → **gifto-core-admin** → **Settings** → confirma **Client authentication** = ON e **Service accounts roles** = ON (Capability config).
 2. Abre o separador **Service accounts roles** (não “Roles”).
 3. **Assign role** → **Filter by clients** → escolhe **realm-management**.
-4. Atribui pelo menos **manage-users** (recomendado também **view-users** e **query-users**).
+4. Atribui **manage-users**, **view-users**, **query-users**, **view-clients** e **query-clients** (sem *view/query-clients* a Admin API pode não listar o `voucher-platform-api` e o backend falha ao atribuir roles).
 
 Sem isto, o token do *client credentials* autentica (200/401 resolvido) mas o Keycloak nega operações na Admin API (**403**).
 
@@ -89,7 +89,7 @@ Ao criar **tenant** ou **merchant**, o core cria o utilizador convidado no Keycl
 | Variável | Descrição |
 |----------|-----------|
 | `KEYCLOAK_ADMIN_SERVER_URL` | Raiz HTTP do Keycloak (ex.: `http://localhost:8081` ou `http://keycloak:8080/auth` com `KC_HTTP_RELATIVE_PATH=/auth`) |
-| `KEYCLOAK_ADMIN_REALM` | Realm (defeito: `gifto`) |
+| `KEYCLOAK_ADMIN_REALM` | Realm onde estão os clients (defeito: `gifto`). **Não deixes a linha vazia** no `.env` — string vazia anula o default do Spring; no compose Lightsail usa-se `${VAR:-gifto}`. |
 | `KEYCLOAK_ADMIN_CLIENT_ID` | Client confidencial (defeito: `gifto-core-admin`) |
 | `KEYCLOAK_ADMIN_CLIENT_SECRET` | Secret do client (deve coincidir com o realm) |
 | `KEYCLOAK_ADMIN_ROLES_CLIENT_ID` | Client onde estão `tenant_admin` / `merchant_admin` (defeito: `voucher-platform-api`) |
