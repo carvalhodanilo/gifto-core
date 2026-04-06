@@ -77,6 +77,11 @@ public class KeycloakUserProvisioner {
             final var representation = new UserRepresentation();
             representation.setUsername(user.getEmail().getValue());
             representation.setEmail(user.getEmail().getValue());
+            /*
+             * MVP: conta ativa e email tratado como verificado (sem fluxo de confirmação).
+             * Futuro: avaliar setEmailVerified(false) + required action VERIFY_EMAIL (e/ou email com link);
+             *         ou desativar "login com email não confirmado" nas políticas do realm no Keycloak.
+             */
             representation.setEnabled(true);
             representation.setEmailVerified(true);
             applyNameParts(user.getName(), representation);
@@ -88,6 +93,11 @@ public class KeycloakUserProvisioner {
             }
             representation.setAttributes(attrs);
 
+            /*
+             * MVP: sem required actions (login direto com a senha inicial).
+             * Futuro: com temporaryPassword=true, forçar troca no 1º acesso via UPDATE_PASSWORD
+             *         (alinhar com cred.setTemporary(true) abaixo e políticas do realm).
+             */
             if (props.provisioning().temporaryPassword()) {
                 representation.setRequiredActions(List.of("UPDATE_PASSWORD"));
             }
@@ -95,6 +105,7 @@ public class KeycloakUserProvisioner {
             final CredentialRepresentation cred = new CredentialRepresentation();
             cred.setType(CredentialRepresentation.PASSWORD);
             cred.setValue(props.provisioning().initialPassword());
+            /* MVP: senha definitiva. Futuro: true + UPDATE_PASSWORD / email de boas-vindas. */
             cred.setTemporary(props.provisioning().temporaryPassword());
             representation.setCredentials(List.of(cred));
 

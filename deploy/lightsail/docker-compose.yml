@@ -37,7 +37,7 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-voucher-platform-api}
       KEYCLOAK_ADMIN_SERVER_URL: ${KEYCLOAK_ADMIN_SERVER_URL:-http://keycloak:8080/auth}
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET:-core-admin-dev-secret-change-me}
-      KEYCLOAK_USER_INITIAL_PASSWORD: ${KEYCLOAK_USER_INITIAL_PASSWORD:-ChangeMeTemp!}
+      KEYCLOAK_USER_INITIAL_PASSWORD: ${KEYCLOAK_USER_INITIAL_PASSWORD:-changeme}
       VOUCHER_TOKEN_SECRET: ${VOUCHER_TOKEN_SECRET}
       # S3 / Lightsail Object Storage (upload de logos/banners). Opcional: sem bucket o backend sobe e uploads falham com mensagem clara.
       APP_STORAGE_S3_BUCKET: ${APP_STORAGE_S3_BUCKET:-${AWS_S3_BUCKET:-}}

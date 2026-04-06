@@ -30,8 +30,9 @@ app:
       client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
       roles-client-id: ${KEYCLOAK_ADMIN_ROLES_CLIENT_ID:voucher-platform-api}
       provisioning:
-        initial-password: ${KEYCLOAK_USER_INITIAL_PASSWORD:ChangeMeTemp!}
-        temporary-password: ${KEYCLOAK_USER_TEMPORARY_PASSWORD:true}
+        initial-password: ${KEYCLOAK_USER_INITIAL_PASSWORD:changeme}
+        # false = MVP (senha definitiva). true = UPDATE_PASSWORD no 1º login.
+        temporary-password: ${KEYCLOAK_USER_TEMPORARY_PASSWORD:false}
   storage:
     s3:
       bucket: ${APP_STORAGE_S3_BUCKET:}

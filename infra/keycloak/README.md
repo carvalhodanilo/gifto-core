@@ -69,7 +69,9 @@ Ao criar **tenant** ou **merchant**, o core cria o utilizador convidado no Keycl
 | `KEYCLOAK_ADMIN_CLIENT_ID` | Client confidencial (defeito: `gifto-core-admin`) |
 | `KEYCLOAK_ADMIN_CLIENT_SECRET` | Secret do client (deve coincidir com o realm) |
 | `KEYCLOAK_USER_INITIAL_PASSWORD` | Senha inicial enviada ao Keycloak (o Keycloak **não gera** senha na API) |
-| `KEYCLOAK_USER_TEMPORARY_PASSWORD` | Se `true`, a senha é temporária e pode forçar troca no primeiro acesso (`UPDATE_PASSWORD`) |
+| `KEYCLOAK_USER_TEMPORARY_PASSWORD` | Defeito recomendado MVP: `false` (senha definitiva, sem troca obrigatória). `true` ativa credencial temporária + `UPDATE_PASSWORD` no primeiro login |
+
+Comportamento **MVP** no código (`KeycloakUserProvisioner`): `emailVerified=true`, sem *required actions* (ex.: sem `VERIFY_EMAIL`). Comentários no código indicam onde reativar confirmação de email e senha temporária.
 
 **Realm já importado:** se adicionares o client `gifto-core-admin` ao JSON e o realm existir na base do Keycloak, o import **não** aplica alterações por defeito. Atribui manualmente as roles de `realm-management` ao *service account* ou recria o volume do Keycloak (ver secção de reimport acima).
 

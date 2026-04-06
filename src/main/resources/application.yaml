@@ -80,7 +80,8 @@ app:
       roles-client-id: ${KEYCLOAK_ADMIN_ROLES_CLIENT_ID:voucher-platform-api}
       provisioning:
         initial-password: ${KEYCLOAK_USER_INITIAL_PASSWORD:changeme}
-        temporary-password: ${KEYCLOAK_USER_TEMPORARY_PASSWORD:true}
+        # false = senha definitiva, login imediato (MVP). true = troca obrigatória (UPDATE_PASSWORD).
+        temporary-password: ${KEYCLOAK_USER_TEMPORARY_PASSWORD:false}
   security:
     enabled: true
     keycloak:
