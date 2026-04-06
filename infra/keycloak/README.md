@@ -53,6 +53,30 @@ docker compose --env-file infra/keycloak/.env -f infra/keycloak/docker-compose.y
   - `merchant_operator`
 - **Client `gifto-core-admin`** (confidencial, *service account*): usado pelo backend Spring para criar utilizadores no realm via Admin API. O *service account* tem roles no client `realm-management` (`manage-users`, `view-users`, `query-users`). O secret por defeito no JSON de import é `core-admin-dev-secret-change-me` — **altera em produção** e define `KEYCLOAK_ADMIN_CLIENT_SECRET` no ambiente do core.
 
+### Se criaste o `gifto-core-admin` à mão e recebes 403 ao criar utilizadores
+
+O separador **Roles** desse client (lista vazia “No roles for this client”) **não** é o problema: serve para definir *client roles* próprios do `gifto-core-admin`, não para dar poder ao backend.
+
+Faz o seguinte no Admin Console (realm **gifto**):
+
+1. **Clients** → **gifto-core-admin** → **Settings** → confirma **Client authentication** = ON e **Service accounts roles** = ON (Capability config).
+2. Abre o separador **Service accounts roles** (não “Roles”).
+3. **Assign role** → **Filter by clients** → escolhe **realm-management**.
+4. Atribui pelo menos **manage-users** (recomendado também **view-users** e **query-users**).
+
+Sem isto, o token do *client credentials* autentica (200/401 resolvido) mas o Keycloak nega operações na Admin API (**403**).
+
+### Dois clients, sem confundir (erro “Client OIDC não encontrado: voucher-platform-api”)
+
+| Client | Função |
+|--------|--------|
+| **`gifto-core-admin`** | O *backend* usa-o com **client secret** para obter token e chamar a **Admin API** (criar utilizadores). |
+| **`voucher-platform-api`** | É o client da **sua API** (resource server). As **client roles** do produto (`tenant_admin`, `merchant_admin`, …) estão **aqui**. Depois de criar o utilizador, o código atribui-lhe uma destas roles — por isso esse client **tem de existir** no mesmo realm `gifto`. |
+
+Se o realm em produção foi criado só com `gifto-core-admin` e **sem** importar o `realm-gifto.json` completo, falta o client **`voucher-platform-api`** (e as roles nele). Solução: importar o realm do repo ou criar manualmente esse client e as *client roles* como no JSON.
+
+Variável no Spring: `KEYCLOAK_ADMIN_ROLES_CLIENT_ID` (defeito `voucher-platform-api`) — só altera se renomeares o client da API no Keycloak.
+
 ### Onde as roles aparecem no token
 
 Como são *client roles*, elas aparecem em:
@@ -68,6 +92,7 @@ Ao criar **tenant** ou **merchant**, o core cria o utilizador convidado no Keycl
 | `KEYCLOAK_ADMIN_REALM` | Realm (defeito: `gifto`) |
 | `KEYCLOAK_ADMIN_CLIENT_ID` | Client confidencial (defeito: `gifto-core-admin`) |
 | `KEYCLOAK_ADMIN_CLIENT_SECRET` | Secret do client (deve coincidir com o realm) |
+| `KEYCLOAK_ADMIN_ROLES_CLIENT_ID` | Client onde estão `tenant_admin` / `merchant_admin` (defeito: `voucher-platform-api`) |
 | `KEYCLOAK_USER_INITIAL_PASSWORD` | Senha inicial enviada ao Keycloak (o Keycloak **não gera** senha na API) |
 | `KEYCLOAK_USER_TEMPORARY_PASSWORD` | Defeito recomendado MVP: `false` (senha definitiva, sem troca obrigatória). `true` ativa credencial temporária + `UPDATE_PASSWORD` no primeiro login |
 

@@ -9,6 +9,9 @@ import com.vp.core.domain.user.ScopeType;
 import com.vp.core.domain.user.User;
 import com.vp.core.domain.validation.DomainError;
 import com.vp.core.infrastructure.config.KeycloakAdminProperties;
+import jakarta.ws.rs.ForbiddenException;
+import jakarta.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.CreatedResponseUtil;
@@ -115,6 +118,9 @@ public class KeycloakUserProvisioner {
                     throw DomainException.with(new DomainError(
                             "Já existe um utilizador no Keycloak com o email indicado."));
                 }
+                if (status == Response.Status.FORBIDDEN.getStatusCode()) {
+                    throw DomainException.with(new DomainError(keycloakAdminForbiddenHint()));
+                }
                 if (status != Response.Status.CREATED.getStatusCode()) {
                     throw new IllegalStateException(
                             "Keycloak create user falhou: HTTP " + status + " — " + safeBody(response));
@@ -136,6 +142,12 @@ public class KeycloakUserProvisioner {
                 }
                 return kcUserId;
             }
+        } catch (final ProcessingException e) {
+            throw translateKeycloakFailure(e);
+        } catch (final NotAuthorizedException e) {
+            throw DomainException.with(new DomainError(keycloakAdminUnauthorizedHint()));
+        } catch (final ForbiddenException e) {
+            throw DomainException.with(new DomainError(keycloakAdminForbiddenHint()));
         }
     }
 
@@ -150,6 +162,14 @@ public class KeycloakUserProvisioner {
             } catch (final jakarta.ws.rs.NotFoundException e) {
                 log.debug("Keycloak user {} já inexistente ao compensar.", keycloakUserId);
             }
+        } catch (final ProcessingException e) {
+            if (causedByNotAuthorized(e)) {
+                log.warn("Keycloak compensação: 401 na Admin API. {}", keycloakAdminUnauthorizedHint());
+            } else {
+                log.warn("Keycloak compensação: {}", e.getMessage(), e);
+            }
+        } catch (final NotAuthorizedException e) {
+            log.warn("Keycloak compensação: 401 na Admin API. {}", keycloakAdminUnauthorizedHint());
         }
     }
 
@@ -187,7 +207,7 @@ public class KeycloakUserProvisioner {
     private void assignClientRole(final RealmResource realm, final String kcUserId, final String roleName) {
         final var clients = realm.clients().findByClientId(props.rolesClientId());
         if (clients == null || clients.isEmpty()) {
-            throw new IllegalStateException("Client OIDC não encontrado no realm: " + props.rolesClientId());
+            throw DomainException.with(new DomainError(rolesClientMissingHint(props.rolesClientId(), roleName)));
         }
         final String internalClientId = clients.getFirst().getId();
         final RoleRepresentation role = realm.clients().get(internalClientId).roles().get(roleName).toRepresentation();
@@ -215,5 +235,58 @@ public class KeycloakUserProvisioner {
         } catch (Exception ignored) {
         }
         return "";
+    }
+
+    private static RuntimeException translateKeycloakFailure(final Throwable e) {
+        if (causedByNotAuthorized(e)) {
+            return DomainException.with(new DomainError(keycloakAdminUnauthorizedHint()));
+        }
+        if (causedByForbidden(e)) {
+            return DomainException.with(new DomainError(keycloakAdminForbiddenHint()));
+        }
+        if (e instanceof RuntimeException re) {
+            return re;
+        }
+        return new IllegalStateException(e);
+    }
+
+    private static boolean causedByNotAuthorized(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof NotAuthorizedException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean causedByForbidden(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof ForbiddenException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String keycloakAdminUnauthorizedHint() {
+        return "Keycloak Admin API devolveu 401 ao obter token (client credentials). "
+                + "Confirme: (1) existe o client gifto-core-admin no realm gifto, com Client authentication ativa e Service accounts ON; "
+                + "(2) KEYCLOAK_ADMIN_CLIENT_SECRET é exatamente o secret desse client (Admin Console → Clients → gifto-core-admin → Credentials); "
+                + "(3) KEYCLOAK_ADMIN_SERVER_URL=http://keycloak:8080/auth quando o Keycloak usa KC_HTTP_RELATIVE_PATH=/auth; "
+                + "(4) o service account tem roles realm-management (manage-users). Se o realm foi criado antes deste client, cria-o manualmente ou reimporta o realm.";
+    }
+
+    private static String keycloakAdminForbiddenHint() {
+        return "Keycloak Admin API devolveu 403 (sem permissão). O separador \"Roles\" do client só define papéis desse client — não autoriza o backend. "
+                + "Vai a Clients → gifto-core-admin → Service accounts roles → Assign role → "
+                + "Filter by clients → realm-management e adiciona pelo menos manage-users (e view-users, query-users). "
+                + "Em Capability config o client precisa de \"Service accounts roles\" ativo.";
+    }
+
+    private static String rolesClientMissingHint(final String rolesClientId, final String roleName) {
+        return "No realm não existe o client \"" + rolesClientId + "\" (variável KEYCLOAK_ADMIN_ROLES_CLIENT_ID / app.keycloak.admin.roles-client-id). "
+                + "Isto não é o gifto-core-admin: o backend autentica com gifto-core-admin, mas as roles da app (ex. " + roleName + ") "
+                + "vivem no client da API (por defeito voucher-platform-api), como no realm importado em infra/keycloak/realm/realm-gifto.json. "
+                + "Importa o realm completo ou cria esse client com as client roles tenant_admin, merchant_admin, etc.";
     }
 }
