@@ -70,6 +70,17 @@ management:
       application: ${spring.application.name}
 
 app:
+  keycloak:
+    admin:
+      # Raiz HTTP do Keycloak (sem /realms/...). Com KC_HTTP_RELATIVE_PATH=/auth use http://host:port/auth
+      server-url: ${KEYCLOAK_ADMIN_SERVER_URL:http://localhost:8081}
+      realm: ${KEYCLOAK_ADMIN_REALM:gifto}
+      client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:gifto-core-admin}
+      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:core-admin-dev-secret-change-me}
+      roles-client-id: ${KEYCLOAK_ADMIN_ROLES_CLIENT_ID:voucher-platform-api}
+      provisioning:
+        initial-password: ${KEYCLOAK_USER_INITIAL_PASSWORD:changeme}
+        temporary-password: ${KEYCLOAK_USER_TEMPORARY_PASSWORD:true}
   security:
     enabled: true
     keycloak:

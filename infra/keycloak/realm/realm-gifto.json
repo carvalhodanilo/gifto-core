@@ -254,6 +254,36 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "gifto-core-admin",
+      "name": "Gifto Core Admin",
+      "description": "Client credentials para o backend provisionar utilizadores no realm",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "core-admin-dev-secret-change-me",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [],
+      "webOrigins": [],
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles",
+        "web-origins"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
     }
   ],
   "roles": {
@@ -283,6 +313,19 @@
     }
   },
   "users": [
+    {
+      "username": "service-account-gifto-core-admin",
+      "enabled": true,
+      "emailVerified": false,
+      "serviceAccountClientId": "gifto-core-admin",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users"
+        ]
+      }
+    },
     {
       "username": "system.admin@local.test",
       "enabled": true,

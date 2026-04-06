@@ -7,6 +7,7 @@ import com.vp.core.domain.validation.ValidationHandler;
 import com.vp.core.domain.valueObjects.Email;
 
 import java.time.Instant;
+import java.util.Optional;
 
 public class User extends AggregateRoot<UserId> {
 
@@ -16,18 +17,23 @@ public class User extends AggregateRoot<UserId> {
 
     private final UserScope scope;
 
+    /** Id interno no Keycloak; preenchido após provisionamento (pode ser null antes ou em dados legados). */
+    private String keycloakUserId;
+
     private User(
             final UserId id,
             final Email email,
             final String name,
             final UserStatus status,
-            final UserScope scope
+            final UserScope scope,
+            final String keycloakUserId
     ) {
         super(id);
         this.email = email;
         this.name = name;
         this.status = status;
         this.scope = scope;
+        this.keycloakUserId = keycloakUserId;
     }
 
     private User(
@@ -37,13 +43,15 @@ public class User extends AggregateRoot<UserId> {
             final UserStatus status,
             final UserScope scope,
             final Instant createdAt,
-            final Instant updatedAt
+            final Instant updatedAt,
+            final String keycloakUserId
     ) {
         super(id, createdAt, updatedAt);
         this.email = email;
         this.name = name;
         this.status = status;
         this.scope = scope;
+        this.keycloakUserId = keycloakUserId;
     }
 
     public static User invitePlatformUser(final Email email, final String name) {
@@ -53,7 +61,8 @@ public class User extends AggregateRoot<UserId> {
                 email,
                 name,
                 UserStatus.INVITED,
-                UserScope.platform()
+                UserScope.platform(),
+                null
         );
     }
 
@@ -64,7 +73,8 @@ public class User extends AggregateRoot<UserId> {
                 email,
                 name,
                 UserStatus.INVITED,
-                UserScope.tenant(tenantId)
+                UserScope.tenant(tenantId),
+                null
         );
     }
 
@@ -75,8 +85,23 @@ public class User extends AggregateRoot<UserId> {
                 email,
                 name,
                 UserStatus.INVITED,
-                UserScope.merchant(merchantId)
+                UserScope.merchant(merchantId),
+                null
         );
+    }
+
+    /** Reconstituição a partir da persistência (infra). */
+    public static User with(
+            final UserId id,
+            final Email email,
+            final String name,
+            final UserStatus status,
+            final UserScope scope,
+            final Instant createdAt,
+            final Instant updatedAt,
+            final String keycloakUserId
+    ) {
+        return new User(id, email, name, status, scope, createdAt, updatedAt, keycloakUserId);
     }
 
     public void activate() {
@@ -97,6 +122,15 @@ public class User extends AggregateRoot<UserId> {
     public void changeEmail(final Email newEmail) {
         this.email = newEmail;
         touch();
+    }
+
+    public void assignKeycloakUserId(final String keycloakUserId) {
+        this.keycloakUserId = keycloakUserId;
+        touch();
+    }
+
+    public Optional<String> getKeycloakUserId() {
+        return Optional.ofNullable(keycloakUserId);
     }
 
     public Email getEmail() {

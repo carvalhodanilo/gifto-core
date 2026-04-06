@@ -22,6 +22,16 @@ spring:
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/auth/realms/gifto/protocol/openid-connect/certs}
 
 app:
+  keycloak:
+    admin:
+      server-url: ${KEYCLOAK_ADMIN_SERVER_URL:http://keycloak:8080/auth}
+      realm: ${KEYCLOAK_ADMIN_REALM:gifto}
+      client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:gifto-core-admin}
+      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
+      roles-client-id: ${KEYCLOAK_ADMIN_ROLES_CLIENT_ID:voucher-platform-api}
+      provisioning:
+        initial-password: ${KEYCLOAK_USER_INITIAL_PASSWORD:ChangeMeTemp!}
+        temporary-password: ${KEYCLOAK_USER_TEMPORARY_PASSWORD:true}
   storage:
     s3:
       bucket: ${APP_STORAGE_S3_BUCKET:}
