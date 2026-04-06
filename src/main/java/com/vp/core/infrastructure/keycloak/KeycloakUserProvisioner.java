@@ -18,6 +18,7 @@ import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -130,6 +131,12 @@ public class KeycloakUserProvisioner {
                     throw new IllegalStateException("Keycloak não devolveu o id do utilizador criado.");
                 }
 
+                /*
+                 * O POST /users por vezes não persiste attributes; sem tenant_id/merchant_id no utilizador
+                 * o token (mappers oidc-usermodel-attribute) não traz as claims e a API devolve 403.
+                 */
+                syncUserScopeAttributes(realm, kcUserId, tenantIdAttr, merchantIdAttr);
+
                 try {
                     assignClientRole(realm, kcUserId, roleName);
                 } catch (final RuntimeException e) {
@@ -202,6 +209,26 @@ public class KeycloakUserProvisioner {
             return null;
         }
         return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    }
+
+    private static void syncUserScopeAttributes(
+            final RealmResource realm,
+            final String kcUserId,
+            final String tenantIdAttr,
+            final String merchantIdAttr
+    ) {
+        final UserResource userResource = realm.users().get(kcUserId);
+        final UserRepresentation rep = userResource.toRepresentation();
+        final Map<String, List<String>> merged = new HashMap<>();
+        if (rep.getAttributes() != null) {
+            merged.putAll(rep.getAttributes());
+        }
+        merged.put("tenant_id", List.of(tenantIdAttr));
+        if (merchantIdAttr != null) {
+            merged.put("merchant_id", List.of(merchantIdAttr));
+        }
+        rep.setAttributes(merged);
+        userResource.update(rep);
     }
 
     private void assignClientRole(final RealmResource realm, final String kcUserId, final String roleName) {

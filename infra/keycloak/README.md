@@ -77,6 +77,14 @@ Se o realm em produção foi criado só com `gifto-core-admin` e **sem** importa
 
 Variável no Spring: `KEYCLOAK_ADMIN_ROLES_CLIENT_ID` (defeito `voucher-platform-api`) — só altera se renomeares o client da API no Keycloak.
 
+### API devolve 403 com `tenant_admin` no token mas sem claim `tenant_id`
+
+O backend exige a claim **`tenant_id`** (e `merchant_id` para utilizadores merchant). Ela vem dos **atributos** do utilizador no Keycloak, mapeados pelo client **voucher-platform-sales-web** (ou scopes partilhados) com *protocol mappers* `tenant_id` / `merchant_id`.
+
+- Se o token tem `resource_access.voucher-platform-api.roles` mas **não** mostra `tenant_id`: abre o utilizador no Admin Console → separador **Attributes** e confirma `tenant_id` = UUID do tenant. Se faltar, adiciona e faz **logout + login** para renovar o access token.
+- Em produção, confirma que o client **voucher-platform-sales-web** tem os mesmos *mappers* que no `realm-gifto.json` (import completo ou cópia manual dos mappers).
+- Novos utilizadores criados pela API passam a ter atributos reforçados com um `PUT` após o create (algumas versões do Keycloak ignoram `attributes` no POST inicial).
+
 ### Onde as roles aparecem no token
 
 Como são *client roles*, elas aparecem em:
