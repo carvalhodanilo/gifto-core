@@ -227,7 +227,6 @@ public class Merchant extends AggregateRoot<MerchantId> {
     }
 
     public void joinNetwork(final NetworkId networkId) {
-        ensureActive();
         Objects.requireNonNull(networkId, "networkId");
 
         final MerchantNetworkLink link = networkLinks.get(networkId);
