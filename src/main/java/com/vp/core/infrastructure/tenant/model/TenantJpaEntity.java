@@ -78,17 +78,29 @@ public class TenantJpaEntity {
     protected TenantJpaEntity() {
     }
 
+    /**
+     * Nova linha (insert). Para atualizar linha existente use {@link #applyFrom(Tenant)} sobre a entidade
+     * carregada do repositório — assim o {@code @Version} correto é preservado.
+     */
     public static TenantJpaEntity from(final Tenant tenant) {
         final var e = new TenantJpaEntity();
-
         e.id = UUID.fromString(tenant.getId().getValue());
+        e.fillFrom(tenant);
+        return e;
+    }
 
-        e.name = tenant.getName();
-        e.fantasyName = tenant.getFantasyName();
-        e.documentValue = tenant.getDocument().getValue();
+    /** Copia o estado do aggregate para esta linha sem alterar {@code id} nem {@code version}. */
+    public void applyFrom(final Tenant tenant) {
+        fillFrom(tenant);
+    }
+
+    private void fillFrom(final Tenant tenant) {
+        this.name = tenant.getName();
+        this.fantasyName = tenant.getFantasyName();
+        this.documentValue = tenant.getDocument().getValue();
 
         final var loc = tenant.getLocation();
-        e.location = (loc == null) ? null : LocationEmbeddable.of(
+        this.location = (loc == null) ? null : LocationEmbeddable.of(
                 loc.getStreet(),
                 loc.getNumber(),
                 loc.getNeighborhood(),
@@ -101,9 +113,9 @@ public class TenantJpaEntity {
 
         final var bank = tenant.getBankAccount();
         if (bank == null) {
-            e.bankAccount = null;
+            this.bankAccount = null;
         } else {
-            e.bankAccount = BankAccountEmbeddable.of(
+            this.bankAccount = BankAccountEmbeddable.of(
                     bank.getBankCode(),
                     bank.getBankName(),
                     bank.getBranch(),
@@ -117,19 +129,17 @@ public class TenantJpaEntity {
             );
         }
 
-        e.status = tenant.getStatus().name();
-        e.phone1 = tenant.getPhone1();
-        e.phone2 = tenant.getPhone2();
-        e.email = tenant.getEmail().getValue();
-        e.url = tenant.getUrl().getValue();
-        e.logoUrl = tenant.getLogoUrl();
-        e.primaryBrandColor = tenant.getPrimaryBrandColor();
-        e.secondaryBrandColor = tenant.getSecondaryBrandColor();
+        this.status = tenant.getStatus().name();
+        this.phone1 = tenant.getPhone1();
+        this.phone2 = tenant.getPhone2();
+        this.email = tenant.getEmail().getValue();
+        this.url = tenant.getUrl().getValue();
+        this.logoUrl = tenant.getLogoUrl();
+        this.primaryBrandColor = tenant.getPrimaryBrandColor();
+        this.secondaryBrandColor = tenant.getSecondaryBrandColor();
 
-        e.createdAt = tenant.getCreatedAt();
-        e.updatedAt = tenant.getUpdatedAt();
-
-        return e;
+        this.createdAt = tenant.getCreatedAt();
+        this.updatedAt = tenant.getUpdatedAt();
     }
 
     public Tenant toAggregate() {

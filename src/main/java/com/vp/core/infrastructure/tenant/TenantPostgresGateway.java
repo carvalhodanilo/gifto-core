@@ -4,6 +4,7 @@ import com.vp.core.domain.gateway.TenantGateway;
 import com.vp.core.domain.pagination.Pagination;
 import com.vp.core.domain.pagination.SearchQuery;
 import com.vp.core.domain.pagination.SearchTenantQuery;
+import com.vp.core.domain.exceptions.NotFoundException;
 import com.vp.core.domain.tenant.Tenant;
 import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.infrastructure.tenant.model.TenantJpaEntity;
@@ -33,7 +34,11 @@ public class TenantPostgresGateway implements TenantGateway {
 
     @Override
     public Tenant update(final Tenant tenant) {
-        final var saved = repository.save(TenantJpaEntity.from(tenant));
+        final var id = UUID.fromString(tenant.getId().getValue());
+        final var entity = repository.findById(id)
+                .orElseThrow(() -> NotFoundException.with(Tenant.class, tenant.getId()));
+        entity.applyFrom(tenant);
+        final var saved = repository.save(entity);
         return saved.toAggregate();
     }
 
