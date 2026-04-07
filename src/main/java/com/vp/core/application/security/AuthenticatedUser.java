@@ -66,6 +66,19 @@ public record AuthenticatedUser(
         );
     }
 
+    /** Quando o IdP não envia tenant_id/merchant_id, preenche a partir da fonte interna (ex.: tabela users). */
+    public AuthenticatedUser withScopeIds(final String tenantId, final String merchantId) {
+        return new AuthenticatedUser(
+                subject,
+                username,
+                email,
+                tenantId != null ? tenantId : this.tenantId,
+                merchantId != null ? merchantId : this.merchantId,
+                roles,
+                authorities
+        );
+    }
+
     public boolean hasRole(final String role) {
         if (role == null || role.isBlank()) {
             return false;

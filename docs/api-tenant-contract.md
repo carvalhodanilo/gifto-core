@@ -85,6 +85,42 @@ Retorna a lista de tenants.
 | `403 Forbidden` | usuário sem role `system_admin` | `{ "message": "<descrição do erro>" }` |
 
 ---
+## Branding do tenant da sessão (header / apps)
+
+Nome de exibição e URL do logo do shopping associado ao `tenant_id` do JWT.
+
+### Request
+
+- **Método:** `GET`
+- **Path:** `/tenants/me/branding`
+
+### Segurança
+
+- Roles: `tenant_admin`, `tenant_operator`, `merchant_admin`, `merchant_operator`
+- O `tenant_id` é obtido **apenas** do token (sem path param; evita IDOR).
+
+### Response – sucesso
+
+- **Status:** `200 OK`
+- **Body (JSON):**
+
+```json
+{
+  "tenantId": "57681649-b182-49fd-904e-19adcbfa3ada",
+  "name": "Nome fantasia ou razão social",
+  "logoUrl": "https://..."
+}
+```
+
+`logoUrl` pode ser `null` se não houver logo carregado.
+
+### Erros
+
+| Status | Quando |
+|--------|--------|
+| `403 Forbidden` | `system_admin`, role sem escopo shopping, ou `tenant_id` ausente no token |
+
+---
 ## Formato padrão de erro
 
 Os erros retornam um JSON com um único campo:

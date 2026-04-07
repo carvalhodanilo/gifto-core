@@ -1,6 +1,8 @@
 package com.vp.core.infrastructure.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vp.core.application.security.AuthenticatedUser;
+import com.vp.core.infrastructure.security.DatabaseScopeClaimsEnricher;
 import com.vp.core.infrastructure.security.JwtToAuthenticationConverter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -11,7 +13,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -27,14 +33,32 @@ import java.util.Optional;
 public class ApiSecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(
-            final HttpSecurity http,
+    Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter(
             final SecurityProperties securityProperties,
-            final ObjectMapper objectMapper
-    ) throws Exception {
+            final DatabaseScopeClaimsEnricher scopeClaimsEnricher
+    ) {
         final var rolesClientId = Optional.ofNullable(securityProperties.keycloak())
                 .map(SecurityProperties.KeycloakProperties::rolesClientId)
                 .orElse(null);
+        final var base = new JwtToAuthenticationConverter(rolesClientId);
+        return jwt -> {
+            final var auth = base.convert(jwt);
+            final var principal = auth.getPrincipal();
+            if (principal instanceof AuthenticatedUser au) {
+                final var enriched = scopeClaimsEnricher.enrich(au);
+                return new UsernamePasswordAuthenticationToken(enriched, auth.getCredentials(), auth.getAuthorities());
+            }
+            return auth;
+        };
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(
+            final HttpSecurity http,
+            final SecurityProperties securityProperties,
+            final ObjectMapper objectMapper,
+            final Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter
+    ) throws Exception {
 
         return http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -51,7 +75,7 @@ public class ApiSecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(new JwtToAuthenticationConverter(rolesClientId)))
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                 )
                 .build();
     }

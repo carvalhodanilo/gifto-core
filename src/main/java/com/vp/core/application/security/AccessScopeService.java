@@ -102,5 +102,30 @@ public class AccessScopeService {
 
         throw new AccessDeniedException("Acesso negado: role sem permissão para merchant.");
     }
+
+    /**
+     * Leitura de branding do tenant atual (logo / nome no header) para utilizadores com escopo de shopping.
+     * Inclui merchant_admin/merchant_operator: o token já contém o {@code tenant_id} do shopping.
+     */
+    public void ensureCanReadTenantBranding() {
+        final var user = currentUserProvider.getCurrentUserOrThrow();
+
+        if (user.isSystemAdmin()) {
+            throw new AccessDeniedException("Acesso negado: branding de tenant não disponível para system_admin.");
+        }
+
+        final var tokenTenantId = user.tenantId();
+        if (tokenTenantId == null || tokenTenantId.isBlank()) {
+            throw new AccessDeniedException("Acesso negado: tenant_id ausente no token.");
+        }
+
+        final boolean shoppingScoped = user.isTenantAdmin()
+                || user.isTenantOperator()
+                || user.isMerchantAdmin()
+                || user.isMerchantOperator();
+        if (!shoppingScoped) {
+            throw new AccessDeniedException("Acesso negado: role sem permissão para branding do tenant.");
+        }
+    }
 }
 

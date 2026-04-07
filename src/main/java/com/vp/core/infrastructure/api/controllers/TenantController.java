@@ -32,8 +32,11 @@ import com.vp.core.domain.valueObjects.URL;
 import com.vp.core.infrastructure.api.request.CreateTenantRequest;
 import com.vp.core.infrastructure.api.request.UpdateTenantBankAccountRequest;
 import com.vp.core.infrastructure.api.request.UpdateTenantRequest;
+import com.vp.core.application.security.AccessScopeService;
+import com.vp.core.application.security.CurrentUserProvider;
 import com.vp.core.infrastructure.api.response.AssetUrlResponse;
 import com.vp.core.infrastructure.api.response.CreateTenantResponse;
+import com.vp.core.infrastructure.api.response.TenantBrandingResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +61,8 @@ public class TenantController {
     private final UploadTenantLogoUseCase uploadTenantLogoUseCase;
     private final GetTenantBankAccountUseCase getTenantBankAccountUseCase;
     private final UpdateTenantBankAccountUseCase updateTenantBankAccountUseCase;
+    private final CurrentUserProvider currentUserProvider;
+    private final AccessScopeService accessScopeService;
 
     public TenantController(
             final CreateTenantUseCase createTenantUseCase,
@@ -68,7 +73,9 @@ public class TenantController {
             final ListMerchantsByTenantUseCase listMerchantsByTenantUseCase,
             final UploadTenantLogoUseCase uploadTenantLogoUseCase,
             final GetTenantBankAccountUseCase getTenantBankAccountUseCase,
-            final UpdateTenantBankAccountUseCase updateTenantBankAccountUseCase
+            final UpdateTenantBankAccountUseCase updateTenantBankAccountUseCase,
+            final CurrentUserProvider currentUserProvider,
+            final AccessScopeService accessScopeService
     ) {
         this.createTenantUseCase = createTenantUseCase;
         this.getAllTenantsUseCase = getAllTenantsUseCase;
@@ -79,6 +86,8 @@ public class TenantController {
         this.uploadTenantLogoUseCase = uploadTenantLogoUseCase;
         this.getTenantBankAccountUseCase = getTenantBankAccountUseCase;
         this.updateTenantBankAccountUseCase = updateTenantBankAccountUseCase;
+        this.currentUserProvider = currentUserProvider;
+        this.accessScopeService = accessScopeService;
     }
 
     @PostMapping
@@ -103,6 +112,23 @@ public class TenantController {
     @PreAuthorize("hasRole('system_admin')")
     public ResponseEntity<GetAllTenantsOutput> findAllActive() {
         return ResponseEntity.ok(getAllTenantsUseCase.execute());
+    }
+
+    @GetMapping("/me/branding")
+    // [tenant_admin, tenant_operator, merchant_admin, merchant_operator]
+    @PreAuthorize("hasAnyRole('tenant_admin', 'tenant_operator', 'merchant_admin', 'merchant_operator')")
+    public ResponseEntity<TenantBrandingResponse> getMyTenantBranding() {
+        accessScopeService.ensureCanReadTenantBranding();
+        final var tenantId = currentUserProvider.getCurrentUserOrThrow().tenantId();
+        final var out = getTenantUseCase.execute(tenantId);
+        final var displayName = out.fantasyName() != null && !out.fantasyName().isBlank()
+                ? out.fantasyName()
+                : out.name();
+        return ResponseEntity.ok(TenantBrandingResponse.of(
+                out.id(),
+                displayName,
+                out.logoUrl()
+        ));
     }
 
     @GetMapping("/paged")
