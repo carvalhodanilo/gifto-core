@@ -50,6 +50,9 @@ app:
       allowed-origin-patterns:
         # Browser chamando a API no mesmo host (IP público Lightsail), ex.: http://203.0.113.10:3000
         - "http://${PUBLIC_IP}:*"
+        # Vite / dev local a apontar para a API remota (landing, sales-app)
+        - "http://localhost:*"
+        - "http://127.0.0.1:*"
       allowed-methods: [ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ]
       allowed-headers: [ "*" ]
       exposed-headers: [ "*" ]
