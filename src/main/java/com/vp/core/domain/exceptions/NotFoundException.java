@@ -27,4 +27,9 @@ public class NotFoundException extends DomainException {
     public static NotFoundException with(final DomainError domainError) {
         return new NotFoundException(domainError.message(), List.of(domainError));
     }
+
+    /** Mensagem simples (ex.: recursos públicos sem expor detalhes internos). */
+    public static NotFoundException withMessage(final String message) {
+        return new NotFoundException(message, Collections.emptyList());
+    }
 }

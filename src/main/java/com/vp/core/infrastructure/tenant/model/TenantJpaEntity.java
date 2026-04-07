@@ -65,6 +65,10 @@ public class TenantJpaEntity {
     @Column(name = "secondary_brand_color", length = 16)
     private String secondaryBrandColor;
 
+    /** Subdomínio lógico do shopping (único quando preenchido). Não preenchido em {@link #fillFrom} — preserva valor na BD. */
+    @Column(name = "public_slug")
+    private String publicSlug;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;

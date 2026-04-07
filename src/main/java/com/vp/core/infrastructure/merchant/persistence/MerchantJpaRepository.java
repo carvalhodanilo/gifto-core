@@ -2,6 +2,7 @@ package com.vp.core.infrastructure.merchant.persistence;
 
 import com.vp.core.infrastructure.merchant.model.MerchantJpaEntity;
 import com.vp.core.infrastructure.merchant.persistence.projection.MerchantListProjection;
+import com.vp.core.infrastructure.merchant.persistence.projection.PublicCampaignStoreProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -24,6 +25,26 @@ public interface MerchantJpaRepository
     boolean existsByTenantIdAndEmail(UUID tenantId, String email);
 
     List<MerchantJpaEntity> findAllByTenantIdAndStatus(UUID tenantId, String status);
+
+    @Query("""
+            select
+                m.id as id,
+                m.fantasyName as fantasyName,
+                m.name as name,
+                m.landingLogoUrl as landingLogoUrl,
+                m.location.city as city
+            from MerchantJpaEntity m
+            join m.networkLinks mn
+            where m.tenantId = :tenantId
+              and mn.id.networkId = :networkId
+              and m.status = 'ACTIVE'
+              and mn.status = 'ACTIVE'
+            order by lower(coalesce(m.fantasyName, m.name))
+            """)
+    List<PublicCampaignStoreProjection> findPublicStoresForNetwork(
+            @Param("tenantId") UUID tenantId,
+            @Param("networkId") UUID networkId
+    );
 
     @Query("""
             select

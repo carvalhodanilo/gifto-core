@@ -70,6 +70,9 @@ management:
       application: ${spring.application.name}
 
 app:
+  # Landing pública (QR): vazio = resolver tenant só via ?tenantId= (útil em sandbox com IP).
+  public-landing:
+    host-suffix: ${PUBLIC_LANDING_HOST_SUFFIX:}
   keycloak:
     admin:
       # Raiz HTTP do Keycloak (sem /realms/...). Com KC_HTTP_RELATIVE_PATH=/auth use http://host:port/auth
@@ -93,6 +96,7 @@ app:
       allowed-origin-patterns:
         - "http://localhost:*"
         - "http://127.0.0.1:*"
+        - "http://44.213.123.87:*"
       allowed-methods: [ "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ]
       allowed-headers: [ "*" ]
       exposed-headers: [ "*" ]
