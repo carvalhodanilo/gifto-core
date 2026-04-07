@@ -19,13 +19,14 @@ public record GetAllByTenantOutput(
         return new GetAllByTenantOutput(tenantOutputs);
     }
 
-    record GetCampaignOutput(
+    public record GetCampaignOutput(
             String id,
             String name,
             int expirationDays,
             Instant startsAt,
             Instant endsAt,
             String bannerUrl,
+            String externalLandingUrl,
             CampaignStatus status
     ) {
         public static GetCampaignOutput of(final Campaign campaign) {
@@ -36,6 +37,7 @@ public record GetAllByTenantOutput(
                     campaign.startsAt(),
                     campaign.endsAt(),
                     campaign.bannerUrl(),
+                    campaign.externalLandingUrl(),
                     campaign.status()
             );
         }

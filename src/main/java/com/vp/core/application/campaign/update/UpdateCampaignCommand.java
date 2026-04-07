@@ -5,7 +5,8 @@ public record UpdateCampaignCommand(
         String campaignId,
         String name,
         int expirationDays,
-        String startsAt,   // ISO-8601 or null
-        String endsAt      // ISO-8601 or null
+        String startsAt,
+        String endsAt,
+        String externalLandingUrl
 ) {
 }

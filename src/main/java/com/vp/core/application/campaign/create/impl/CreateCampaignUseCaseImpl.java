@@ -39,13 +39,16 @@ public class CreateCampaignUseCaseImpl extends CreateCampaignUseCase {
         final var startsAt = parseInstant(command.startsAt());
         final var endsAt = parseInstant(command.endsAt());
 
+        final var external = normalizeExternalUrl(command.externalLandingUrl());
+
         final var campaign = Campaign.create(
                 tenantId,
                 defaultNetwork.getId(),
                 command.name(),
                 command.expirationDays(),
                 startsAt,
-                endsAt
+                endsAt,
+                external
         );
 
         campaignGateway.create(campaign);
@@ -58,5 +61,12 @@ public class CreateCampaignUseCaseImpl extends CreateCampaignUseCase {
             return null;
         }
         return Instant.parse(raw);
+    }
+
+    private static String normalizeExternalUrl(final String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        return raw.trim();
     }
 }

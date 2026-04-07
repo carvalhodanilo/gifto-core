@@ -1,7 +1,6 @@
 package com.vp.core.domain.campaign;
 
 import com.vp.core.domain.AggregateRoot;
-import com.vp.core.domain.merchant.MerchantStatus;
 import com.vp.core.domain.network.NetworkId;
 import com.vp.core.domain.tenant.TenantId;
 import com.vp.core.domain.utils.InstantUtils;
@@ -9,8 +8,6 @@ import com.vp.core.domain.validation.ValidationHandler;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 
 /**
  * Campaign Aggregate Root
@@ -31,6 +28,8 @@ public class Campaign extends AggregateRoot<CampaignId> {
     private CampaignStatus status;
     /** URL pública do banner na landing. */
     private String bannerUrl;
+    /** URL da landing externa do parceiro (opcional); null = usar só a landing da plataforma. */
+    private String externalLandingUrl;
 
     private long version;
 
@@ -43,7 +42,8 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final Instant startsAt,
             final Instant endsAt,
             final CampaignStatus status,
-            final String bannerUrl
+            final String bannerUrl,
+            final String externalLandingUrl
     ) {
         super(id);
 
@@ -55,6 +55,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
         this.endsAt = endsAt;
         this.status = status;
         this.bannerUrl = bannerUrl;
+        this.externalLandingUrl = externalLandingUrl;
     }
 
     private Campaign(
@@ -67,6 +68,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final Instant endsAt,
             final CampaignStatus status,
             final String bannerUrl,
+            final String externalLandingUrl,
             final Instant createdAt,
             final Instant updatedAt,
             final long version
@@ -81,6 +83,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
         this.endsAt = endsAt;
         this.status = status;
         this.bannerUrl = bannerUrl;
+        this.externalLandingUrl = externalLandingUrl;
         this.version = version;
     }
 
@@ -90,7 +93,8 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final String name,
             final int expirationDays,
             final Instant startsAt,
-            final Instant endsAt
+            final Instant endsAt,
+            final String externalLandingUrl
     ) {
         final var id = CampaignId.newId();
         return new Campaign(
@@ -102,7 +106,8 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 startsAt,
                 endsAt,
                 CampaignStatus.DRAFT,
-                null
+                null,
+                externalLandingUrl
         );
     }
 
@@ -120,6 +125,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 InstantUtils.now(),
                 InstantUtils.now().plus(10000, ChronoUnit.DAYS),
                 CampaignStatus.DRAFT,
+                null,
                 null
         );
     }
@@ -134,12 +140,14 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final String name,
             final int expirationDays,
             final Instant startsAt,
-            final Instant endsAt
+            final Instant endsAt,
+            final String externalLandingUrl
     ) {
         this.name = name;
         this.expirationDays = expirationDays;
         this.startsAt = startsAt;
         this.endsAt = endsAt;
+        this.externalLandingUrl = externalLandingUrl;
         touch();
         return this;
     }
@@ -172,6 +180,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
             final Instant endsAt,
             final CampaignStatus status,
             final String bannerUrl,
+            final String externalLandingUrl,
             final Instant createdAt,
             final Instant updatedAt,
             final long version
@@ -186,6 +195,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 endsAt,
                 status,
                 bannerUrl,
+                externalLandingUrl,
                 createdAt,
                 updatedAt,
                 version
@@ -224,6 +234,10 @@ public class Campaign extends AggregateRoot<CampaignId> {
         return bannerUrl;
     }
 
+    public String externalLandingUrl() {
+        return externalLandingUrl;
+    }
+
     public void ensureActive() {
         if (this.status != CampaignStatus.ACTIVE) {
             throw new IllegalStateException("Campaign is not ACTIVE");
@@ -232,11 +246,10 @@ public class Campaign extends AggregateRoot<CampaignId> {
 
     @Override
     public void validate(final ValidationHandler handler) {
-        // sem validações por enquanto
+        // sem validações por agora
     }
 
     public long getVersion() {
         return version;
     }
 }
-

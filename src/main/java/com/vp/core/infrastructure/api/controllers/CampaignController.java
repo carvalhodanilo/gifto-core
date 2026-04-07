@@ -11,6 +11,8 @@ import com.vp.core.application.campaign.findAllActiveByTenant.FindAllActiveByTen
 import com.vp.core.application.campaign.findAllByTenant.GetAllByTenantCommand;
 import com.vp.core.application.campaign.findAllByTenant.GetAllByTenantOutput;
 import com.vp.core.application.campaign.findAllByTenant.GetAllByTenantUseCase;
+import com.vp.core.application.campaign.get.GetCampaignCommand;
+import com.vp.core.application.campaign.get.GetCampaignUseCase;
 import com.vp.core.application.campaign.pause.PauseCampaignCommand;
 import com.vp.core.application.campaign.pause.PauseCampaignUseCase;
 import com.vp.core.application.campaign.suspend.SuspendCampaignCommand;
@@ -44,6 +46,7 @@ public class CampaignController {
     private final PauseCampaignUseCase pauseCampaignUseCase;
     private final SuspendCampaignUseCase suspendCampaignUseCase;
     private final UpdateCampaignUseCase updateCampaignUseCase;
+    private final GetCampaignUseCase getCampaignUseCase;
     private final UploadCampaignBannerUseCase uploadCampaignBannerUseCase;
     private final CurrentUserProvider currentUserProvider;
     private final AccessScopeService accessScopeService;
@@ -56,6 +59,7 @@ public class CampaignController {
             final PauseCampaignUseCase pauseCampaignUseCase,
             final SuspendCampaignUseCase suspendCampaignUseCase,
             final UpdateCampaignUseCase updateCampaignUseCase,
+            final GetCampaignUseCase getCampaignUseCase,
             final UploadCampaignBannerUseCase uploadCampaignBannerUseCase,
             final CurrentUserProvider currentUserProvider,
             final AccessScopeService accessScopeService
@@ -67,6 +71,7 @@ public class CampaignController {
         this.pauseCampaignUseCase = pauseCampaignUseCase;
         this.suspendCampaignUseCase = suspendCampaignUseCase;
         this.updateCampaignUseCase = updateCampaignUseCase;
+        this.getCampaignUseCase = getCampaignUseCase;
         this.uploadCampaignBannerUseCase = uploadCampaignBannerUseCase;
         this.currentUserProvider = currentUserProvider;
         this.accessScopeService = accessScopeService;
@@ -101,7 +106,8 @@ public class CampaignController {
                 request.name(),
                 request.expirationDays(),
                 request.startsAt(),
-                request.endsAt()
+                request.endsAt(),
+                request.externalLandingUrl()
         );
         return ResponseEntity.ok(createCampaignUseCase.execute(command));
     }
@@ -118,6 +124,18 @@ public class CampaignController {
 
         final var command = new GetAllByTenantCommand(tenantId);
         return ResponseEntity.ok(getAllByTenantUseCase.execute(command));
+    }
+
+    @GetMapping("/{campaignId}")
+    @PreAuthorize("hasRole('tenant_admin')")
+    public ResponseEntity<GetAllByTenantOutput.GetCampaignOutput> getById(
+            @PathVariable String campaignId
+    ) {
+        final var tenantId = currentUserProvider.getCurrentTenantId();
+        accessScopeService.ensureTenantAccess(tenantId);
+
+        final var command = new GetCampaignCommand(tenantId, campaignId);
+        return ResponseEntity.ok(getCampaignUseCase.execute(command));
     }
 
     @PutMapping("/{campaignId}/update")
@@ -137,7 +155,8 @@ public class CampaignController {
                 request.name(),
                 request.expirationDays(),
                 request.startsAt(),
-                request.endsAt()
+                request.endsAt(),
+                request.externalLandingUrl()
         );
 
         updateCampaignUseCase.execute(command);

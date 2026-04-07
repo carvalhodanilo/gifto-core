@@ -34,11 +34,14 @@ public class UpdateCampaignUseCaseImpl extends UpdateCampaignUseCase {
         final var startsAt = parseInstant(command.startsAt());
         final var endsAt = parseInstant(command.endsAt());
 
+        final var external = normalizeExternalUrl(command.externalLandingUrl());
+
         campaign.update(
                 command.name(),
                 command.expirationDays(),
                 startsAt,
-                endsAt
+                endsAt,
+                external
         );
 
         campaignGateway.update(campaign);
@@ -51,5 +54,12 @@ public class UpdateCampaignUseCaseImpl extends UpdateCampaignUseCase {
             return null;
         }
         return Instant.parse(raw);
+    }
+
+    private static String normalizeExternalUrl(final String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        return raw.trim();
     }
 }
