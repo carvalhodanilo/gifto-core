@@ -108,17 +108,52 @@ Nome de exibição e URL do logo do shopping associado ao `tenant_id` do JWT.
 {
   "tenantId": "57681649-b182-49fd-904e-19adcbfa3ada",
   "name": "Nome fantasia ou razão social",
-  "logoUrl": "https://..."
+  "logoUrl": "https://...",
+  "primaryColor": "#0f172a",
+  "secondaryColor": "#64748b"
 }
 ```
 
-`logoUrl` pode ser `null` se não houver logo carregado.
+- `logoUrl`, `primaryColor` e `secondaryColor` podem ser `null`: a app cliente deve usar os defaults visuais (ex. paleta e ícone do mock).
 
 ### Erros
 
 | Status | Quando |
 |--------|--------|
 | `403 Forbidden` | `system_admin`, role sem escopo shopping, ou `tenant_id` ausente no token |
+
+---
+## Atualizar identidade visual (cores da marca)
+
+Substitui as cores gravadas no tenant. Valores `null` removem a cor na base (fallback para defaults na app). Formato: `#RGB` ou `#RRGGBB`.
+
+### Request
+
+- **Método:** `PUT`
+- **Path:** `/tenants/{tenantId}/brand-identity`
+- **Body (JSON):**
+
+```json
+{
+  "primaryColor": "#1e293b",
+  "secondaryColor": "#94a3b8"
+}
+```
+
+### Segurança
+
+- Role: `system_admin`
+
+### Response – sucesso
+
+- **Status:** `200 OK`
+- **Body (JSON):** igual ao `PATCH /tenants/{tenantId}` (`{ "tenantId": "..." }`)
+
+### Erros
+
+| Status | Quando |
+|--------|--------|
+| `400 Bad Request` | cor fora do formato `#RGB` / `#RRGGBB` |
 
 ---
 ## Formato padrão de erro

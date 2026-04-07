@@ -22,6 +22,10 @@ public class Tenant extends AggregateRoot<TenantId> {
     private URL url;
     /** URL pública (S3) do logo para header / landing. */
     private String logoUrl;
+    /** Cor principal (#RGB / #RRGGBB). Null = cliente usa default da app. */
+    private String primaryBrandColor;
+    /** Cor secundária. Null = default da app. */
+    private String secondaryBrandColor;
 
     private Tenant(
             final TenantId id,
@@ -36,6 +40,8 @@ public class Tenant extends AggregateRoot<TenantId> {
             final Email email,
             final URL url,
             final String logoUrl,
+            final String primaryBrandColor,
+            final String secondaryBrandColor,
             final Instant createdAt,
             final Instant updatedAt
     ) {
@@ -52,6 +58,8 @@ public class Tenant extends AggregateRoot<TenantId> {
         this.email = email;
         this.url = url;
         this.logoUrl = logoUrl;
+        this.primaryBrandColor = primaryBrandColor;
+        this.secondaryBrandColor = secondaryBrandColor;
     }
 
     private Tenant(
@@ -66,7 +74,9 @@ public class Tenant extends AggregateRoot<TenantId> {
             final String phone2,
             final Email email,
             final URL url,
-            final String logoUrl
+            final String logoUrl,
+            final String primaryBrandColor,
+            final String secondaryBrandColor
     ) {
         super(id);
 
@@ -81,6 +91,8 @@ public class Tenant extends AggregateRoot<TenantId> {
         this.email = email;
         this.url = url;
         this.logoUrl = logoUrl;
+        this.primaryBrandColor = primaryBrandColor;
+        this.secondaryBrandColor = secondaryBrandColor;
     }
 
     public static Tenant create(
@@ -104,6 +116,8 @@ public class Tenant extends AggregateRoot<TenantId> {
                 null,
                 email,
                 url,
+                null,
+                null,
                 null
         );
     }
@@ -112,6 +126,31 @@ public class Tenant extends AggregateRoot<TenantId> {
         this.logoUrl = logoUrl;
         touch();
         return this;
+    }
+
+    public Tenant updateBrandColors(final String primaryBrandColor, final String secondaryBrandColor) {
+        this.primaryBrandColor = normalizeHexColor(primaryBrandColor);
+        this.secondaryBrandColor = normalizeHexColor(secondaryBrandColor);
+        touch();
+        return this;
+    }
+
+    private static String normalizeHexColor(final String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        final var s = value.trim();
+        if (!s.startsWith("#") || (s.length() != 4 && s.length() != 7)) {
+            throw new IllegalArgumentException("Cor inválida: use #RGB ou #RRGGBB.");
+        }
+        for (int i = 1; i < s.length(); i++) {
+            final char c = s.charAt(i);
+            final boolean hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+            if (!hex) {
+                throw new IllegalArgumentException("Cor inválida: use apenas dígitos hexadecimais.");
+            }
+        }
+        return s;
     }
 
     public Tenant updateProfile(
@@ -157,6 +196,8 @@ public class Tenant extends AggregateRoot<TenantId> {
             final Email email,
             final URL url,
             final String logoUrl,
+            final String primaryBrandColor,
+            final String secondaryBrandColor,
             final Instant createdAt,
             final Instant updatedAt
     ) {
@@ -173,6 +214,8 @@ public class Tenant extends AggregateRoot<TenantId> {
                 email,
                 url,
                 logoUrl,
+                primaryBrandColor,
+                secondaryBrandColor,
                 createdAt,
                 updatedAt
         );
@@ -220,6 +263,14 @@ public class Tenant extends AggregateRoot<TenantId> {
 
     public String getLogoUrl() {
         return logoUrl;
+    }
+
+    public String getPrimaryBrandColor() {
+        return primaryBrandColor;
+    }
+
+    public String getSecondaryBrandColor() {
+        return secondaryBrandColor;
     }
 
     public void suspend() {

@@ -10,6 +10,8 @@ public record GetTenantOutput(
         String email,
         String url,
         String logoUrl,
+        String primaryColor,
+        String secondaryColor,
         String status
 ) {
     public static GetTenantOutput of(
@@ -22,9 +24,13 @@ public record GetTenantOutput(
             final String email,
             final String url,
             final String logoUrl,
+            final String primaryColor,
+            final String secondaryColor,
             final String status
     ) {
-        return new GetTenantOutput(id, name, fantasyName, document, phone1, phone2, email, url, logoUrl, status);
+        return new GetTenantOutput(
+                id, name, fantasyName, document, phone1, phone2, email, url, logoUrl, primaryColor, secondaryColor, status
+        );
     }
 }
 

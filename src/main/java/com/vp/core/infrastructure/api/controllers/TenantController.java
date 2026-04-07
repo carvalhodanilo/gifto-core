@@ -13,6 +13,8 @@ import com.vp.core.application.tenant.listPaged.ListTenantsPagedUseCase;
 import com.vp.core.application.tenant.update.UpdateTenantCommand;
 import com.vp.core.application.tenant.update.UpdateTenantOutput;
 import com.vp.core.application.tenant.update.UpdateTenantUseCase;
+import com.vp.core.application.tenant.updateBrandIdentity.UpdateTenantBrandIdentityCommand;
+import com.vp.core.application.tenant.updateBrandIdentity.UpdateTenantBrandIdentityUseCase;
 import com.vp.core.application.tenant.uploadLogo.UploadTenantLogoCommand;
 import com.vp.core.application.tenant.uploadLogo.UploadTenantLogoUseCase;
 import com.vp.core.application.tenant.getBankAccount.GetTenantBankAccountCommand;
@@ -31,6 +33,7 @@ import com.vp.core.domain.valueObjects.PixKey;
 import com.vp.core.domain.valueObjects.URL;
 import com.vp.core.infrastructure.api.request.CreateTenantRequest;
 import com.vp.core.infrastructure.api.request.UpdateTenantBankAccountRequest;
+import com.vp.core.infrastructure.api.request.UpdateTenantBrandIdentityRequest;
 import com.vp.core.infrastructure.api.request.UpdateTenantRequest;
 import com.vp.core.application.security.AccessScopeService;
 import com.vp.core.application.security.CurrentUserProvider;
@@ -61,6 +64,7 @@ public class TenantController {
     private final UploadTenantLogoUseCase uploadTenantLogoUseCase;
     private final GetTenantBankAccountUseCase getTenantBankAccountUseCase;
     private final UpdateTenantBankAccountUseCase updateTenantBankAccountUseCase;
+    private final UpdateTenantBrandIdentityUseCase updateTenantBrandIdentityUseCase;
     private final CurrentUserProvider currentUserProvider;
     private final AccessScopeService accessScopeService;
 
@@ -74,6 +78,7 @@ public class TenantController {
             final UploadTenantLogoUseCase uploadTenantLogoUseCase,
             final GetTenantBankAccountUseCase getTenantBankAccountUseCase,
             final UpdateTenantBankAccountUseCase updateTenantBankAccountUseCase,
+            final UpdateTenantBrandIdentityUseCase updateTenantBrandIdentityUseCase,
             final CurrentUserProvider currentUserProvider,
             final AccessScopeService accessScopeService
     ) {
@@ -86,6 +91,7 @@ public class TenantController {
         this.uploadTenantLogoUseCase = uploadTenantLogoUseCase;
         this.getTenantBankAccountUseCase = getTenantBankAccountUseCase;
         this.updateTenantBankAccountUseCase = updateTenantBankAccountUseCase;
+        this.updateTenantBrandIdentityUseCase = updateTenantBrandIdentityUseCase;
         this.currentUserProvider = currentUserProvider;
         this.accessScopeService = accessScopeService;
     }
@@ -127,7 +133,9 @@ public class TenantController {
         return ResponseEntity.ok(TenantBrandingResponse.of(
                 out.id(),
                 displayName,
-                out.logoUrl()
+                out.logoUrl(),
+                out.primaryColor(),
+                out.secondaryColor()
         ));
     }
 
@@ -171,6 +179,21 @@ public class TenantController {
         final var contentType = file.getContentType() != null ? file.getContentType() : "";
         final var out = uploadTenantLogoUseCase.execute(new UploadTenantLogoCommand(tenantId, content, contentType));
         return ResponseEntity.ok(AssetUrlResponse.of(out.url()));
+    }
+
+    @PutMapping("/{tenantId}/brand-identity")
+    // [system_admin]
+    @PreAuthorize("hasRole('system_admin')")
+    public ResponseEntity<UpdateTenantOutput> updateBrandIdentity(
+            @PathVariable final String tenantId,
+            @RequestBody final UpdateTenantBrandIdentityRequest body
+    ) {
+        final var out = updateTenantBrandIdentityUseCase.execute(new UpdateTenantBrandIdentityCommand(
+                tenantId,
+                body != null ? body.primaryColor() : null,
+                body != null ? body.secondaryColor() : null
+        ));
+        return ResponseEntity.ok(out);
     }
 
     @PatchMapping("/{tenantId}")

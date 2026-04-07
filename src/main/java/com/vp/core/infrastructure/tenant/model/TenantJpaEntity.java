@@ -59,6 +59,12 @@ public class TenantJpaEntity {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Column(name = "primary_brand_color", length = 16)
+    private String primaryBrandColor;
+
+    @Column(name = "secondary_brand_color", length = 16)
+    private String secondaryBrandColor;
+
     @Version
     @Column(name = "version", nullable = false)
     private long version;
@@ -117,6 +123,8 @@ public class TenantJpaEntity {
         e.email = tenant.getEmail().getValue();
         e.url = tenant.getUrl().getValue();
         e.logoUrl = tenant.getLogoUrl();
+        e.primaryBrandColor = tenant.getPrimaryBrandColor();
+        e.secondaryBrandColor = tenant.getSecondaryBrandColor();
 
         e.createdAt = tenant.getCreatedAt();
         e.updatedAt = tenant.getUpdatedAt();
@@ -173,6 +181,8 @@ public class TenantJpaEntity {
                 Email.with(email),
                 URL.with(url),
                 logoUrl,
+                primaryBrandColor,
+                secondaryBrandColor,
                 createdAt,
                 updatedAt
         );

@@ -33,6 +33,8 @@ public class GetTenantUseCaseImpl extends GetTenantUseCase {
                 tenant.getEmail().getValue(),
                 tenant.getUrl().getValue(),
                 tenant.getLogoUrl(),
+                tenant.getPrimaryBrandColor(),
+                tenant.getSecondaryBrandColor(),
                 tenant.getStatus().name()
         );
     }
