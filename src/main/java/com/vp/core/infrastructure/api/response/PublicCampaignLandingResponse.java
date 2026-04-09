@@ -10,6 +10,7 @@ public record PublicCampaignLandingResponse(
 ) {
     public record PublicCampaignTenantBranding(
             String displayName,
+            String logoUrl,
             String primaryBrandColor,
             String secondaryBrandColor
     ) {

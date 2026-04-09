@@ -75,6 +75,7 @@ public class GetPublicCampaignLandingUseCase {
 
         final var branding = new PublicCampaignTenantBranding(
                 displayName,
+                tenant.getLogoUrl(),
                 tenant.getPrimaryBrandColor(),
                 tenant.getSecondaryBrandColor()
         );
