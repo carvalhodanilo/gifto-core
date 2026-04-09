@@ -25,7 +25,6 @@ import com.vp.core.application.security.AccessScopeService;
 import com.vp.core.application.security.CurrentUserProvider;
 import com.vp.core.infrastructure.api.request.CreateCampaignRequest;
 import com.vp.core.infrastructure.api.request.UpdateCampaignRequest;
-import com.vp.core.infrastructure.api.response.AssetUrlResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +34,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.IOException;
 
+/**
+ * Criação/atualização aceitam JSON ou multipart (parte {@code data} + {@code banner} opcional).
+ */
 @RestController
 @RequestMapping("/campaigns")
 public class CampaignController {
@@ -91,25 +93,21 @@ public class CampaignController {
         return ResponseEntity.ok(findAllActiveByTenantUseCase.execute(command));
     }
 
-    @PostMapping
-    //[tenant_admin]
-    // remover header e utilizar via tenant/merchant id via token
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('tenant_admin')")
-    public ResponseEntity<CreateCampaignOutput> create(
-            @RequestBody CreateCampaignRequest request
+    public ResponseEntity<CreateCampaignOutput> createJson(
+            @RequestBody final CreateCampaignRequest request
     ) {
-        final var tenantId = currentUserProvider.getCurrentTenantId();
-        accessScopeService.ensureTenantAccess(tenantId);
+        return ResponseEntity.ok(createCampaignWithOptionalBanner(request, null));
+    }
 
-        final var command = new CreateCampaignCommand(
-                tenantId,
-                request.name(),
-                request.expirationDays(),
-                request.startsAt(),
-                request.endsAt(),
-                request.externalLandingUrl()
-        );
-        return ResponseEntity.ok(createCampaignUseCase.execute(command));
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('tenant_admin')")
+    public ResponseEntity<CreateCampaignOutput> createMultipart(
+            @RequestPart("data") final CreateCampaignRequest request,
+            @RequestPart(value = "banner", required = false) final MultipartFile banner
+    ) {
+        return ResponseEntity.ok(createCampaignWithOptionalBanner(request, banner));
     }
 
     @GetMapping("/all")
@@ -138,13 +136,53 @@ public class CampaignController {
         return ResponseEntity.ok(getCampaignUseCase.execute(command));
     }
 
-    @PutMapping("/{campaignId}/update")
-    //[tenant_admin]
-    // remover header e utilizar via tenant/merchant id via token
+    @PutMapping(value = "/{campaignId}/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('tenant_admin')")
-    public ResponseEntity<Void> update(
-            @PathVariable String campaignId,
-            @RequestBody UpdateCampaignRequest request
+    public ResponseEntity<Void> updateJson(
+            @PathVariable final String campaignId,
+            @RequestBody final UpdateCampaignRequest request
+    ) {
+        updateCampaignWithOptionalBanner(campaignId, request, null);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping(value = "/{campaignId}/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('tenant_admin')")
+    public ResponseEntity<Void> updateMultipart(
+            @PathVariable final String campaignId,
+            @RequestPart("data") final UpdateCampaignRequest request,
+            @RequestPart(value = "banner", required = false) final MultipartFile banner
+    ) {
+        updateCampaignWithOptionalBanner(campaignId, request, banner);
+        return ResponseEntity.ok().build();
+    }
+
+    private CreateCampaignOutput createCampaignWithOptionalBanner(
+            final CreateCampaignRequest request,
+            final MultipartFile banner
+    ) {
+        final var tenantId = currentUserProvider.getCurrentTenantId();
+        accessScopeService.ensureTenantAccess(tenantId);
+
+        final var command = new CreateCampaignCommand(
+                tenantId,
+                request.name(),
+                request.expirationDays(),
+                request.startsAt(),
+                request.endsAt(),
+                request.externalLandingUrl()
+        );
+        final var out = createCampaignUseCase.execute(command);
+        if (banner != null && !banner.isEmpty()) {
+            uploadBannerPart(tenantId, out.campaignId(), banner);
+        }
+        return out;
+    }
+
+    private void updateCampaignWithOptionalBanner(
+            final String campaignId,
+            final UpdateCampaignRequest request,
+            final MultipartFile banner
     ) {
         final var tenantId = currentUserProvider.getCurrentTenantId();
         accessScopeService.ensureTenantAccess(tenantId);
@@ -158,34 +196,26 @@ public class CampaignController {
                 request.endsAt(),
                 request.externalLandingUrl()
         );
-
         updateCampaignUseCase.execute(command);
-        return ResponseEntity.ok().build();
+        if (banner != null && !banner.isEmpty()) {
+            uploadBannerPart(tenantId, campaignId, banner);
+        }
     }
 
-    @PostMapping(value = "/{campaignId}/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //[tenant_admin]
-    @PreAuthorize("hasRole('tenant_admin')")
-    public ResponseEntity<AssetUrlResponse> uploadBanner(
-            @PathVariable String campaignId,
-            @RequestPart("file") MultipartFile file
+    private void uploadBannerPart(
+            final String tenantId,
+            final String campaignId,
+            final MultipartFile banner
     ) {
-        final var tenantId = currentUserProvider.getCurrentTenantId();
-        accessScopeService.ensureTenantAccess(tenantId);
-
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Arquivo é obrigatório.");
-        }
         final byte[] content;
         try {
-            content = file.getBytes();
+            content = banner.getBytes();
         } catch (final IOException e) {
             throw new IllegalArgumentException("Não foi possível ler o arquivo enviado.");
         }
-        final var contentType = file.getContentType() != null ? file.getContentType() : "";
-        final var out = uploadCampaignBannerUseCase.execute(
+        final var contentType = banner.getContentType() != null ? banner.getContentType() : "";
+        uploadCampaignBannerUseCase.execute(
                 new UploadCampaignBannerCommand(tenantId, campaignId, content, contentType));
-        return ResponseEntity.ok(AssetUrlResponse.of(out.url()));
     }
 
     @PatchMapping("/{campaignId}/activate")
