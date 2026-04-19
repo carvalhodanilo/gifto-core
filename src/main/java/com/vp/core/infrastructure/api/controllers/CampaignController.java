@@ -138,7 +138,7 @@ public class CampaignController {
 
     @PutMapping(value = "/{campaignId}/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('tenant_admin')")
-    public ResponseEntity<Void> updateJson(
+    public ResponseEntity<Void> updateJson(d
             @PathVariable final String campaignId,
             @RequestBody final UpdateCampaignRequest request
     ) {

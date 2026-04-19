@@ -53,8 +53,8 @@ public class CreateTenantUseCaseImpl extends CreateTenantUseCase {
         final var defaultNetwork = Network.createDefault(tenantId);
         networkGateway.create(defaultNetwork);
 
-        final var defaultCampaign = Campaign.createDefault(tenantId, defaultNetwork.getId());
-        campaignGateway.create(defaultCampaign);
+//        final var defaultCampaign = Campaign.createDefault(tenantId, defaultNetwork.getId());
+//        campaignGateway.create(defaultCampaign);
 
         final var adminUser = User.inviteTenantUser(
                 Email.with(command.contactEmail()),
@@ -66,7 +66,7 @@ public class CreateTenantUseCaseImpl extends CreateTenantUseCase {
         return CreateTenantOutput.of(
                 tenantId.getValue(),
                 defaultNetwork.getId().getValue(),
-                defaultCampaign.getId().getValue(),
+//                defaultCampaign.getId().getValue(),
                 adminUser.getId().getValue()
         );
     }
